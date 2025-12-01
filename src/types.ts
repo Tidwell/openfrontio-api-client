@@ -17,11 +17,11 @@ export interface ApiError {
 
 export interface GameConfig {
   gameMap: string;
-  // Inferred from JSON value "Medium"
-  difficulty: 'Easy' | 'Medium' | 'Hard' | string;
+  // Updated: Added 'Impossible' based on JSON value
+  difficulty: 'Easy' | 'Medium' | 'Hard' | 'Impossible' | string;
   donateGold: boolean;
   donateTroops: boolean;
-  gameType: string;
+  gameType: GameType | string;
   // Inferred from JSON value "Free For All"
   gameMode: 'Free For All' | 'Team' | string;
   gameMapSize: string;
@@ -44,7 +44,8 @@ export interface PlayerBoats {
 
 export interface PlayerBombs {
   abomb: string[];
-  hbomb: string[];
+  // Updated: Made optional as it is missing in the provided game JSON
+  hbomb?: string[];
 }
 
 export interface PlayerUnits {
@@ -77,7 +78,8 @@ export interface Player {
   username: string;
   cosmetics: PlayerCosmetics;
   persistentID: string | null;
-  stats: PlayerStats;
+  // Updated: Made optional as it is not present in some game JSON contexts
+  stats?: PlayerStats;
 }
 
 // -- Game Metadata --
@@ -139,10 +141,30 @@ export interface AllianceIntent extends BaseIntent {
   recipient: string;
 }
 
+export interface AllianceRequestReplyIntent extends BaseIntent {
+  type: 'allianceRequestReply';
+  requestor: string;
+  accept: boolean;
+}
+
 export interface BuildUnitIntent extends BaseIntent {
   type: 'build_unit';
-  unit: UnitName; // Updated from string to UnitName union
+  unit: UnitName;
   tile: TileIndex;
+}
+
+// Updated: Added based on Turn #7917 in the JSON
+export interface MoveWarshipIntent extends BaseIntent {
+  type: 'move_warship';
+  unitId: number;
+  tile: TileIndex;
+}
+
+// Updated: Added based on Turn #4976 in the JSON
+export interface UpgradeStructureIntent extends BaseIntent {
+  type: 'upgrade_structure';
+  unit: UnitName;
+  unitId: number;
 }
 
 export type TurnIntent =
@@ -150,7 +172,10 @@ export type TurnIntent =
   | AttackIntent
   | BoatIntent
   | AllianceIntent
-  | BuildUnitIntent;
+  | AllianceRequestReplyIntent
+  | BuildUnitIntent
+  | MoveWarshipIntent     // Added
+  | UpgradeStructureIntent; // Added
 
 export interface GameTurn {
   turnNumber: number;
@@ -166,7 +191,7 @@ export interface GameInfo {
   domain: string;
   subdomain: string;
   info: GameMetadata;
-  turns: GameTurn[];
+  turns?: GameTurn[];
 }
 
 export interface GameListOptions {
