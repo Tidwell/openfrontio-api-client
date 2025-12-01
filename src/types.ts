@@ -141,6 +141,12 @@ export interface AllianceIntent extends BaseIntent {
   recipient: string;
 }
 
+// Updated: Added based on Turn #10386 in game-detail_id-1tZXXWzG.json
+export interface BreakAllianceIntent extends BaseIntent {
+  type: 'breakAlliance';
+  recipient: string;
+}
+
 export interface AllianceRequestReplyIntent extends BaseIntent {
   type: 'allianceRequestReply';
   requestor: string;
@@ -172,10 +178,11 @@ export type TurnIntent =
   | AttackIntent
   | BoatIntent
   | AllianceIntent
+  | BreakAllianceIntent   // Added
   | AllianceRequestReplyIntent
   | BuildUnitIntent
-  | MoveWarshipIntent     // Added
-  | UpgradeStructureIntent; // Added
+  | MoveWarshipIntent
+  | UpgradeStructureIntent;
 
 export interface GameTurn {
   turnNumber: number;
