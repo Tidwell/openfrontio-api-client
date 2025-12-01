@@ -2039,7 +2039,7 @@ type GameListOptions = {
     offset?: number;
 };
 type GameListItem = {
-    game: string;
+    game: GameID;
     start: number;
     end: number;
     type: GameType;

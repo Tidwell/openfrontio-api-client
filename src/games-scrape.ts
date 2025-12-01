@@ -3,7 +3,7 @@ import path from 'path';
 import {
   getGames,
   getGameInfo
-} from './index.ts';
+} from './index';
 
 // Configuration Constants
 const OUTPUT_DIR = 'games-data-output';

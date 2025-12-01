@@ -6,7 +6,7 @@
     "sample": "tsx src/example",
     "scrape": "tsx src/games-scrape",
     "types": "tsx src/openfront-types",
-    "test-types": "tsc src/test-types"
+    "test-types": "tsc -p tsconfig.json --noEmit"
   },
   "version": "1.0.0",
   "main": "./dist/index.js",
