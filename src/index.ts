@@ -1,19 +1,18 @@
 import https from 'https';
 import querystring from 'querystring';
 
-
 import {
-  GameMetadata,
-  GameInfo,
+  ApiError,
+  GameListItem,
   GameListOptions,
-  PlayerInfo,
-  PlayerSession,
-  ClanLeaderboardEntry,
-  ClanStats,
-  ClanSession,
+  PartialGameRecord,
+  PlayerProfile,
+  PlayerGame,
   ClanOptions,
-  ApiError
-} from './types.js';
+  ClanLeaderboardResponse,
+  ClanStats,
+  ClanSession
+} from './types';
 
 const HOSTNAME = 'api.openfront.io';
 
@@ -94,11 +93,11 @@ function makeRequest<T>(path: string, params: Record<string, any> = {}): Promise
  * @param start - Unix timestamp (number) for the start of the range.
  * @param end - Unix timestamp (number) for the end of the range.
  */
-function getGames(start: number, end: number, options: GameListOptions = {}): Promise<GameMetadata[]> {
+export function getGames(start: number, end: number, options: GameListOptions = {}): Promise<GameListItem[]> {
   if (!start || !end) {
     throw new Error('Start and End timestamps are required.');
   }
-  return makeRequest<GameMetadata[]>('/public/games', {
+  return makeRequest<GameListItem[]>('/public/games', {
     start,
     end,
     ...options,
@@ -108,14 +107,14 @@ function getGames(start: number, end: number, options: GameListOptions = {}): Pr
 /**
  * Get Game Info
  * Retrieve detailed information about a specific game.
- * Note: The API response now follows the nested GameInfo structure (version, info, turns).
+ * Note: The API response now follows the nested PartialGameRecord structure (version, info, turns).
  */
-function getGameInfo(gameId: string, includeTurns: boolean = true): Promise<GameInfo> {
+export function getGameInfo(gameId: string, includeTurns: boolean = true): Promise<PartialGameRecord> {
   const params: { turns?: string } = {};
   if (includeTurns === false) {
     params.turns = 'false';
   }
-  return makeRequest<GameInfo>(`/public/game/${gameId}`, params);
+  return makeRequest<PartialGameRecord>(`/public/game/${gameId}`, params);
 }
 
 /**
@@ -126,16 +125,16 @@ function getGameInfo(gameId: string, includeTurns: boolean = true): Promise<Game
  * Get Player Info
  * Retrieve information and stats for a specific player.
  */
-function getPlayerInfo(playerId: string): Promise<PlayerInfo> {
-  return makeRequest<PlayerInfo>(`/public/player/${playerId}`);
+export function getPlayerInfo(playerId: string): Promise<PlayerProfile> {
+  return makeRequest<PlayerProfile>(`/public/player/${playerId}`);
 }
 
 /**
  * Get Player Sessions
  * Retrieve a list of games & client ids (session ids) for a specific player.
  */
-function getPlayerSessions(playerId: string): Promise<PlayerSession[]> {
-  return makeRequest<PlayerSession[]>(`/public/player/${playerId}/sessions`);
+export function getPlayerSessions(playerId: string): Promise<PlayerGame[]> {
+  return makeRequest<PlayerGame[]>(`/public/player/${playerId}/sessions`);
 }
 
 /**
@@ -146,15 +145,15 @@ function getPlayerSessions(playerId: string): Promise<PlayerSession[]> {
  * Clan Leaderboard
  * Shows the top 100 clans by weighted wins.
  */
-function getClanLeaderboard(): Promise<ClanLeaderboardEntry[]> {
-  return makeRequest<ClanLeaderboardEntry[]>('/public/clans/leaderboard');
+export function getClanLeaderboard(): Promise<ClanLeaderboardResponse[]> {
+  return makeRequest<ClanLeaderboardResponse[]>('/public/clans/leaderboard');
 }
 
 /**
  * Clan Stats
  * Displays comprehensive clan performance statistics.
  */
-function getClanStats(clanTag: string, options: ClanOptions = {}): Promise<ClanStats> {
+export function getClanStats(clanTag: string, options: ClanOptions = {}): Promise<ClanStats> {
   return makeRequest<ClanStats>(`/public/clan/${clanTag}`, options as Record<string, any>);
 }
 
@@ -162,11 +161,11 @@ function getClanStats(clanTag: string, options: ClanOptions = {}): Promise<ClanS
  * Clan Sessions
  * Retrieve clan sessions for a specific clan.
  */
-function getClanSessions(clanTag: string, options: ClanOptions = {}): Promise<ClanSession[]> {
+export function getClanSessions(clanTag: string, options: ClanOptions = {}): Promise<ClanSession[]> {
   return makeRequest<ClanSession[]>(`/public/clan/${clanTag}/sessions`, options as Record<string, any>);
 }
 
-export {
+export default {
   getGames,
   getGameInfo,
   getPlayerInfo,

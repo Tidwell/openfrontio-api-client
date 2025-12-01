@@ -1,9 +1,16 @@
 {
+  "exclude": [
+    "node_modules",
+    "**/node_modules/*"
+  ],
   "compilerOptions": {
+    "skipLibCheck": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "strict": false,
-    "declaration": true 
+    "strict": true,
+    "declaration": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true
   },
   "include": ["src/**/*"]
 }

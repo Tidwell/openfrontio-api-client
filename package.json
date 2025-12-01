@@ -1,10 +1,12 @@
 {
-  "name": "Openfront API Client",
+  "name": "openfront-api-client",
   "type": "module",
   "scripts": {
     "build": "npx pkgroll",
     "sample": "tsx src/example",
-    "scrape": "tsx src/games-scrape"
+    "scrape": "tsx src/games-scrape",
+    "types": "tsx src/openfront-types",
+    "test-types": "tsc src/test-types"
   },
   "version": "1.0.0",
   "main": "./dist/index.js",
@@ -21,5 +23,8 @@
     "pkgroll": "^2.21.4",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "openfront-client": "github:openfrontio/OpenFrontIO"
   }
 }

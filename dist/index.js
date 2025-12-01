@@ -81,5 +81,14 @@ function getClanStats(clanTag, options = {}) {
 function getClanSessions(clanTag, options = {}) {
   return makeRequest(`/public/clan/${clanTag}/sessions`, options);
 }
+var index = {
+  getGames,
+  getGameInfo,
+  getPlayerInfo,
+  getPlayerSessions,
+  getClanLeaderboard,
+  getClanStats,
+  getClanSessions
+};
 
-export { getClanLeaderboard, getClanSessions, getClanStats, getGameInfo, getGames, getPlayerInfo, getPlayerSessions };
+export { index as default, getClanLeaderboard, getClanSessions, getClanStats, getGameInfo, getGames, getPlayerInfo, getPlayerSessions };
