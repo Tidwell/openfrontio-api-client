@@ -4,11 +4,31 @@ import {
   GameMode,
   GameType,
 } from 'openfront-client/src/core/game/Game';
-import { TeamCountConfig, GameID } from 'openfront-client/src/core/Schemas';
-export {
-  PartialGameRecord,
+import {
+  PartialGameRecord as OriginalPartialGameRecord,
   TeamCountConfig,
+  GameID,
 } from 'openfront-client/src/core/Schemas';
+
+type OriginalInfo = OriginalPartialGameRecord['info'];
+type OriginalConfig = OriginalInfo['config'];
+
+type ModifiedConfig = Omit<OriginalConfig, 'randomSpawn'> & {
+  randomSpawn?: boolean;
+};
+
+type ModifiedInfo = Omit<OriginalInfo, 'lobbyCreatedAt' | 'lobbyFillTime' | 'config'> & {
+  lobbyCreatedAt?: number;
+  lobbyFillTime?: number;
+  config: ModifiedConfig;
+};
+
+export type PartialGameRecord = Omit<OriginalPartialGameRecord, 'info' | 'version'> & {
+  info: ModifiedInfo;
+  version: string;
+};
+
+export { TeamCountConfig, GameID };
 import {
   ClanLeaderboardEntry
 } from 'openfront-client/src/core/ApiSchemas';
@@ -21,8 +41,8 @@ export {
 
 
 export interface WL {
-  wl: [number, number];
-  weightedWL: [number, number];
+  wl: number[];
+  weightedWL: number[];
 }
 
 export interface TeamClanLeaderboardEntry extends ClanLeaderboardEntry {
