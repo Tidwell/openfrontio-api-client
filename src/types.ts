@@ -3,7 +3,7 @@
 // -- Shared / Common --
 
 // The JSON uses 1D indices for tiles (e.g. 593689), not [x,y] coordinates.
-export type TileIndex = number; 
+export type TileIndex = number;
 
 export type GameType = 'Private' | 'Public' | 'Singleplayer';
 
@@ -17,23 +17,25 @@ export interface ApiError {
 
 export interface GameConfig {
   gameMap: string;
-  difficulty: string;
+  // Inferred from JSON value "Medium"
+  difficulty: 'Easy' | 'Medium' | 'Hard' | string;
   donateGold: boolean;
   donateTroops: boolean;
   gameType: string;
-  gameMode: string;
+  // Inferred from JSON value "Free For All"
+  gameMode: 'Free For All' | 'Team' | string;
   gameMapSize: string;
   disableNPCs: boolean;
   bots: number;
   infiniteGold: boolean;
   infiniteTroops: boolean;
   instantBuild: boolean;
-  disabledUnits: string[]; 
+  disabledUnits: string[];
   playerTeams: number;
   randomSpawn: boolean;
 }
 
-// -- Player Stats Interfaces (New) --
+// -- Player Stats Interfaces --
 
 export interface PlayerBoats {
   trade: string[];
@@ -64,7 +66,7 @@ export interface PlayerStats {
   units: PlayerUnits;
 }
 
-// -- Player Interface (Updated) --
+// -- Player Interface --
 
 export interface PlayerCosmetics {
   flag: string;
@@ -75,10 +77,10 @@ export interface Player {
   username: string;
   cosmetics: PlayerCosmetics;
   persistentID: string | null;
-  stats: PlayerStats; // Added
+  stats: PlayerStats;
 }
 
-// -- Game Metadata (Updated) --
+// -- Game Metadata --
 
 export interface GameMetadata {
   gameID: string;
@@ -89,11 +91,24 @@ export interface GameMetadata {
   end: number;
   duration: number;
   num_turns: number;
-  winner?: string[]; // Added: e.g. ["player", "nfaUr2ZD"]
+  // Updated: Defined as a tuple [Type, ID] based on JSON ["player", "nfaUr2ZD"]
+  winner?: [string, string];
   lobbyFillTime: number;
 }
 
 // -- Turns & Intents --
+
+// New: Specific unit names found in the game JSON
+export type UnitName =
+  | 'City'
+  | 'Port'
+  | 'Factory'
+  | 'SAM Launcher'
+  | 'Missile Silo'
+  | 'Atom Bomb'
+  | 'Hydrogen Bomb'
+  | 'Warship'
+  | 'Defense Post';
 
 interface BaseIntent {
   clientID: string;
@@ -111,13 +126,12 @@ export interface AttackIntent extends BaseIntent {
   troops: number;
 }
 
-// Updated: src can be null
 export interface BoatIntent extends BaseIntent {
   type: 'boat';
   targetID: string | null;
   troops: number;
   dst: TileIndex;
-  src: TileIndex | null; 
+  src: TileIndex | null;
 }
 
 export interface AllianceIntent extends BaseIntent {
@@ -127,15 +141,15 @@ export interface AllianceIntent extends BaseIntent {
 
 export interface BuildUnitIntent extends BaseIntent {
   type: 'build_unit';
-  unit: string;
+  unit: UnitName; // Updated from string to UnitName union
   tile: TileIndex;
 }
 
-export type TurnIntent = 
-  | SpawnIntent 
-  | AttackIntent 
-  | BoatIntent 
-  | AllianceIntent 
+export type TurnIntent =
+  | SpawnIntent
+  | AttackIntent
+  | BoatIntent
+  | AllianceIntent
   | BuildUnitIntent;
 
 export interface GameTurn {
