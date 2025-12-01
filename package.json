@@ -1,0 +1,25 @@
+{
+  "name": "Openfront API Client",
+  "type": "module",
+  "scripts": {
+    "build": "npx pkgroll",
+    "sample": "tsx src/example",
+    "scrape": "tsx src/games-scrape"
+  },
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "dependencies": {
+    "@types/node": "^20.0.0",
+    "pkgroll": "^2.21.4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
