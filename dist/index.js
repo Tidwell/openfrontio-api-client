@@ -1,6 +1,33 @@
 import https from 'https';
 import querystring from 'querystring';
 
+function isNumeric(value) {
+  return typeof value === "string" && /^\d+$/.test(value);
+}
+function convertStringBigIntsToBigInts(obj) {
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map((item) => convertStringBigIntsToBigInts(item));
+  }
+  return Object.keys(obj).reduce((acc, key) => {
+    const value = obj[key];
+    if (isNumeric(value)) {
+      try {
+        acc[key] = BigInt(value);
+      } catch (e) {
+        acc[key] = value;
+      }
+    } else if (typeof value === "object") {
+      acc[key] = convertStringBigIntsToBigInts(value);
+    } else {
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
+}
+
 const HOSTNAME = "api.openfront.io";
 function makeRequest(path, params = {}) {
   return new Promise((resolve, reject) => {
@@ -29,7 +56,8 @@ function makeRequest(path, params = {}) {
       res.on("end", () => {
         try {
           if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-            resolve(JSON.parse(data));
+            const d = JSON.parse(data);
+            resolve(d);
           } else {
             const error = {
               statusCode: res.statusCode || 500,
@@ -59,27 +87,40 @@ function getGames(start, end, options = {}) {
     ...options
   });
 }
-function getGameInfo(gameId, includeTurns = true) {
+async function getGameInfo(gameId, includeTurns = true) {
   const params = {};
   if (includeTurns === false) {
     params.turns = "false";
   }
-  return makeRequest(`/public/game/${gameId}`, params);
+  const game = await makeRequest(`/public/game/${gameId}`, params);
+  return convertStringBigIntsToBigInts(game);
 }
-function getPlayerInfo(playerId) {
-  return makeRequest(`/public/player/${playerId}`);
+async function getPlayerInfo(playerId) {
+  const profile = await makeRequest(
+    `/public/player/${playerId}`
+  );
+  return convertStringBigIntsToBigInts(profile);
 }
-function getPlayerSessions(playerId) {
-  return makeRequest(`/public/player/${playerId}/sessions`);
+async function getPlayerSessions(playerId) {
+  const sessions = await makeRequest(
+    `/public/player/${playerId}/sessions`
+  );
+  return convertStringBigIntsToBigInts(sessions);
 }
 function getClanLeaderboard() {
   return makeRequest("/public/clans/leaderboard");
 }
 function getClanStats(clanTag, options = {}) {
-  return makeRequest(`/public/clan/${clanTag}`, options);
+  return makeRequest(
+    `/public/clan/${clanTag}`,
+    options
+  );
 }
 function getClanSessions(clanTag, options = {}) {
-  return makeRequest(`/public/clan/${clanTag}/sessions`, options);
+  return makeRequest(
+    `/public/clan/${clanTag}/sessions`,
+    options
+  );
 }
 var index = {
   getGames,

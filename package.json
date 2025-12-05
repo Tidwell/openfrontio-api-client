@@ -4,7 +4,7 @@
   "scripts": {
     "build": "npx pkgroll",
     "sample": "tsx src/example",
-    "scrape": "tsx src/games-scrape",
+    "scrape": "tsx src/game-scrape",
     "types": "tsx src/openfront-types",
     "test-types": "tsc -p tsconfig.json --noEmit"
   },
@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@types/node": "^20.0.0",
+    "json-with-bigint": "^3.4.4",
     "pkgroll": "^2.21.4",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"

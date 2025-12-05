@@ -1848,7 +1848,7 @@ declare const PartialGameRecordSchema: ZodObject<{
         hash: ZodOptional<ZodNullable<ZodNumber>>;
     }, $strip>>;
 }, $strip>;
-type PartialGameRecord = output<typeof PartialGameRecordSchema>;
+type PartialGameRecord$1 = output<typeof PartialGameRecordSchema>;
 
 declare enum Difficulty {
     Easy = "Easy",
@@ -2011,9 +2011,34 @@ declare const ClanLeaderboardResponseSchema: ZodObject<{
 }, $strip>;
 type ClanLeaderboardResponse = output<typeof ClanLeaderboardResponseSchema>;
 
+type OriginalInfo = PartialGameRecord$1['info'];
+type OriginalConfig = OriginalInfo['config'];
+type ModifiedConfig = Omit<OriginalConfig, 'randomSpawn'> & {
+    randomSpawn?: boolean;
+};
+type ModifiedInfo = Omit<OriginalInfo, 'lobbyCreatedAt' | 'lobbyFillTime' | 'config'> & {
+    lobbyCreatedAt?: number;
+    lobbyFillTime?: number;
+    config: ModifiedConfig;
+};
+type PartialGameRecord = Omit<PartialGameRecord$1, 'info' | 'version'> & {
+    info: ModifiedInfo;
+    version: string;
+};
+
+type PlayerSession = Omit<PlayerGame, 'start' | 'mode' | 'type' | 'map' | 'difficulty'> & {
+    gameStart: string;
+    gameEnd: string;
+    gameType: GameType;
+    gameMode: GameMode;
+    username: string;
+    clanTag: string | null;
+    hasWon: boolean;
+};
+type PlayerSessions = PlayerSession[];
 interface WL {
-    wl: [number, number];
-    weightedWL: [number, number];
+    wl: number[];
+    weightedWL: number[];
 }
 interface TeamClanLeaderboardEntry extends ClanLeaderboardEntry {
     teamTypeWL: Record<string, WL>;
@@ -2040,8 +2065,8 @@ type GameListOptions = {
 };
 type GameListItem = {
     game: GameID;
-    start: number;
-    end: number;
+    start: string | number;
+    end: string | number;
     type: GameType;
     mode: GameMode;
     difficulty: Difficulty;
@@ -2080,7 +2105,7 @@ declare function getPlayerInfo(playerId: string): Promise<PlayerProfile>;
  * Get Player Sessions
  * Retrieve a list of games & client ids (session ids) for a specific player.
  */
-declare function getPlayerSessions(playerId: string): Promise<PlayerGame[]>;
+declare function getPlayerSessions(playerId: string): Promise<PlayerSessions>;
 /**
  * Clans
  */

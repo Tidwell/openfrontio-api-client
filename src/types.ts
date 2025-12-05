@@ -34,10 +34,21 @@ import {
 } from 'openfront-client/src/core/ApiSchemas';
 export {
   PlayerProfile,
-  PlayerGame,
   ClanLeaderboardResponse,
 } from 'openfront-client/src/core/ApiSchemas';
+import type { PlayerGame as OriginalPlayerGame } from 'openfront-client/src/core/ApiSchemas';
 
+export type PlayerSession = Omit<OriginalPlayerGame, 'start' | 'mode' | 'type' | 'map' | 'difficulty'> & {
+  gameStart: string;
+  gameEnd: string;
+  gameType: GameType;
+  gameMode: GameMode;
+  username: string;
+  clanTag: string | null;
+  hasWon: boolean;
+};
+
+export type PlayerSessions = PlayerSession[];
 
 
 export interface WL {
@@ -73,12 +84,14 @@ export type GameListOptions = {
 
 export type GameListItem = {
   game: GameID;
-  start: number;
-  end: number;
+  start: string | number;
+  end: string | number;
   type: GameType;
   mode: GameMode;
   difficulty: Difficulty;
 };
+
+export type GameList = GameListItem[];
 
 export type ApiError = {
   statusCode: number;
