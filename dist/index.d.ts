@@ -2698,4 +2698,4 @@ declare const _default: {
 };
 
 export { _default as default, getClanLeaderboard, getClanSessions, getClanStats, getGameInfo, getGames, getPlayerInfo, getPlayerSessions };
-export type { ApiError, ClanLeaderboardResponse, ClanOptions, ClanSession, ClanStats, GameID, GameList, GameListItem, GameListOptions, GetClanSessionsParams, GetClanStatsParams, GetGameInfoParams, GetPlayerInfoParams, GetPlayerSessionsParams, PaginatedGameList, PartialGameRecord, PlayerProfile, PlayerSession, PlayerSessions, TeamClanLeaderboardEntry, TeamCountConfig, WL };
+export type { ApiError, ClanLeaderboardResponse, ClanOptions, ClanSession, ClanStats, GameID, GameList, GameListItem, GameListOptions, GetClanSessionsParams, GetClanStatsParams, GetGameInfoParams, GetPlayerInfoParams, GetPlayerSessionsParams, ModifiedConfig, ModifiedInfo, OriginalConfig, OriginalInfo, PartialGameRecord$1 as OriginalPartialGameRecord, PlayerGame as OriginalPlayerGame, PaginatedGameList, PartialGameRecord, PlayerProfile, PlayerSession, PlayerSessions, TeamClanLeaderboardEntry, TeamCountConfig, WL };

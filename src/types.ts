@@ -10,14 +10,18 @@ import type {
   GameID,
 } from "openfront-client/src/core/Schemas";
 
-type OriginalInfo = OriginalPartialGameRecord["info"];
-type OriginalConfig = OriginalInfo["config"];
+import type { PlayerGame as OriginalPlayerGame } from "openfront-client/src/core/ApiSchemas";
 
-type ModifiedConfig = Omit<OriginalConfig, "randomSpawn"> & {
+export type { OriginalPartialGameRecord, OriginalPlayerGame };
+
+export type OriginalInfo = OriginalPartialGameRecord["info"];
+export type OriginalConfig = OriginalInfo["config"];
+
+export type ModifiedConfig = Omit<OriginalConfig, "randomSpawn"> & {
   randomSpawn?: boolean;
 };
 
-type ModifiedInfo = Omit<
+export type ModifiedInfo = Omit<
   OriginalInfo,
   "lobbyCreatedAt" | "lobbyFillTime" | "config"
 > & {
@@ -34,13 +38,12 @@ export type PartialGameRecord = Omit<
   version: string;
 };
 
-export { TeamCountConfig, GameID };
+export type { TeamCountConfig, GameID };
 import { ClanLeaderboardEntry } from "openfront-client/src/core/ApiSchemas";
 export type {
   PlayerProfile,
   ClanLeaderboardResponse,
 } from "openfront-client/src/core/ApiSchemas";
-import type { PlayerGame as OriginalPlayerGame } from "openfront-client/src/core/ApiSchemas";
 
 export type PlayerSession = Omit<
   OriginalPlayerGame,
