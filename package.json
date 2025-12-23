@@ -7,7 +7,8 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "test:e2e:write": "WRITE_API_RESPONSES=true npm run test:e2e",
     "format": "prettier --write \"**/*.{js,ts}\"",
-    "docs": "npx typedoc src/index.ts"
+    "docs": "npx typedoc src/index.ts",
+    "prepare": "husky"
   },
   "engine": "24.xx.xx",
   "version": "1.0.0",
@@ -20,15 +21,15 @@
       "import": "./dist/index.js"
     }
   },
-  "dependencies": {},
   "devDependencies": {
-    "pkgroll": "^2.21.4",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3",
     "@vitest/coverage-v8": "^4.0.16",
+    "husky": "^9.1.7",
     "openfront-client": "github:openfrontio/OpenFrontIO",
+    "pkgroll": "^2.21.4",
     "prettier": "^3.3.3",
+    "tsx": "^4.21.0",
     "typedoc": "^0.28.15",
+    "typescript": "^5.9.3",
     "vitest": "^4.0.16"
   }
 }
