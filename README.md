@@ -1,156 +1,118 @@
 # OpenFront JS API Client
 
-A JavaScript/TypeScript client for the OpenFront API.
+An unofficial, robust JavaScript/TypeScript client for the [OpenFront API](https://github.com/openfrontio/OpenFrontIO/blob/main/docs/API.md).
+
+[![npm version](https://img.shields.io/npm/v/openfrontio-api-client.svg)](https://www.npmjs.com/package/openfrontio-api-client)
+[![License](https://img.shields.io/npm/l/openfrontio-api-client.svg)](LICENSE)
 
 ## Installation
 
 ```bash
-npm install openfront-api
+npm install openfrontio-api-client
 ```
 
-## Usage
+## [View the Docs](LINK TBD)
 
-```typescript
-import { getGames, getGameInfo } from 'openfront-api';
+## Quick Usage
 
-// Example: Fetch games
+```js
+import { getGames, getGameInfo } from "openfrontio-api-client";
+
+const now = new Date();
+const yesterday = new Date(now - 86400000).toISOString();
+
 const games = await getGames({
-  start: new Date(Date.now() - 86400000).toISOString(),
-  end: new Date().toISOString()
+  start: yesterday,
+  end: now.toISOString(),
 });
 ```
 
-## API Reference
+## Key Features
 
-### Games
+- **Pagination Normalization**: Automatically parses and normalizes pagination headers, making it easier to traverse large datasets.
+- **TypeScript Support**: Includes comprehensive type definitions that wrap the official game types, ensuring type safety and autocompletion.
+- **BigInt Support**: Optional support for `BigInt` to safely handle large numeric identifiers without precision loss.
 
-#### `getGames(options)`
+## TypeScript Integration
 
-Get game IDs and basic metadata for games that started within a specified time range. Results are paginated.
+The library exposes TypeScript typings for all API responses. These types directly wrap the official game types, adjusting for optional properties where necessary to match the actual API behavior.
 
-**Parameters:**
+## BigInt Support
 
-- `options` (`GameListOptions`):
-  - `start` (string, required): ISO 8601 timestamp for the start of the range.
-  - `end` (string, required): ISO 8601 timestamp for the end of the range.
-  - `type` (`GameType`, optional): Filter by game type (e.g., 'Singleplayer', 'Public', 'Private').
-  - `limit` (number, optional): Number of results (max 1000, default 50).
-  - `offset` (number, optional): Pagination offset.
+OpenFront API responses often contain large integer identifiers. By default, these are serialized as strings in JSON to prevent JavaScript number precision loss (IEEE 754).
 
-**Returns:** `Promise<PaginatedGameList>`
+This library offers optional BigInt support, allowing you to work with these identifiers as native `BigInt` primitives for mathematical operations or comparisons, rather than managing them as strings.
 
-The response includes the list of items, total count, and the current range.
+## Contributing
 
-```typescript
-const result = await getGames({
-  start: '2025-10-25T00:00:00Z',
-  end: '2025-10-26T23:59:59Z',
-  limit: 10,
-  type: 'Singleplayer'
-});
+Contributions are welcome! Please ensure you have Node.js and npm installed before starting.
 
-console.log(result.items); // GameListItem[]
-console.log(result.total); // Total number of games matching criteria
+### Development Setup
+
+Clone the repository and install the dependencies:
+
+```bash
+git clone github.com/Tidwell/openfrontio-api-client
+cd openfrontio-api-client
+npm install
 ```
 
-#### `getGameInfo(params)`
+## Development Scripts
 
-Retrieve detailed information about a specific game.
+The following scripts are available in `package.json` to assist with development, building, and testing.
 
-**Parameters:**
+### Building the Library
 
-- `params` (`GetGameInfoParams`):
-  - `gameId` (string, required): The ID of the game.
-  - `includeTurns` (boolean, optional): Whether to include turn data. Defaults to `true`. Set to `false` to reduce response size.
+To build the package for production (transpiling TypeScript and bundling):
 
-**Returns:** `Promise<PartialGameRecord>`
-
-```typescript
-const game = await getGameInfo({
-  gameId: 'ABSgwin6',
-  includeTurns: false
-});
+```bash
+npm run build
 ```
 
-### Players
+This uses `pkgroll` to output the build artifacts to the `dist/` directory.
 
-#### `getPlayerInfo(params)`
+### Testing
 
-Retrieve information and stats for a specific player.
+This project uses Vitest for testing.
 
-**Parameters:**
+#### Unit Tests
 
-- `params` (`GetPlayerInfoParams`):
-  - `playerId` (string, required): The ID of the player.
+To run the standard unit test suite:
 
-**Returns:** `Promise<PlayerProfile>`
-
-```typescript
-const player = await getPlayerInfo({ playerId: 'HabCsQYR' });
+```bash
+npm test
 ```
 
-#### `getPlayerSessions(params)`
+#### End-to-End (E2E) Tests
 
-Retrieve a list of games and session IDs for a specific player.
+To run the end-to-end tests using the specific E2E configuration:
 
-**Parameters:**
-
-- `params` (`GetPlayerSessionsParams`):
-  - `playerId` (string, required): The ID of the player.
-
-**Returns:** `Promise<PlayerSessions>`
-
-```typescript
-const sessions = await getPlayerSessions({ playerId: 'HabCsQYR' });
+```bash
+npm run test:e2e
 ```
 
-### Clans
+#### Updating E2E Snapshots/Responses
 
-#### `getClanLeaderboard()`
+If the API behavior changes or you need to record new responses for the E2E tests, use the write command:
 
-Shows the top 100 clans by weighted wins.
-
-**Returns:** `Promise<ClanLeaderboardResponse[]>`
-
-```typescript
-const leaderboard = await getClanLeaderboard();
+```bash
+npm run test:e2e:write
 ```
 
-#### `getClanStats(params)`
+This sets the `WRITE_API_RESPONSES` environment variable to `true` during the test run.
 
-Displays comprehensive clan performance statistics.
+### Formatting
 
-**Parameters:**
+To format the codebase using Prettier:
 
-- `params` (`GetClanStatsParams`):
-  - `clanTag` (string, required): The clan tag.
-  - `start` (string, optional): ISO 8601 timestamp.
-  - `end` (string, optional): ISO 8601 timestamp.
-
-**Returns:** `Promise<ClanStats>`
-
-```typescript
-const stats = await getClanStats({
-  clanTag: 'UN',
-  start: '2025-11-15T00:00:00Z'
-});
+```bash
+npm run format
 ```
 
-#### `getClanSessions(params)`
+### Documentation
 
-Retrieve clan sessions for a specific clan.
+To generate the API documentation using TypeDoc:
 
-**Parameters:**
-
-- `params` (`GetClanSessionsParams`):
-  - `clanTag` (string, required): The clan tag.
-  - `start` (string, optional): ISO 8601 timestamp.
-  - `end` (string, optional): ISO 8601 timestamp.
-
-**Returns:** `Promise<ClanSession[]>`
-
-```typescript
-const sessions = await getClanSessions({
-  clanTag: 'UN'
-});
+```bash
+npm run docs
 ```

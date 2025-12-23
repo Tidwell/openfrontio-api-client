@@ -3,42 +3,49 @@ import {
   Difficulty,
   GameMode,
   GameType,
-} from 'openfront-client/src/core/game/Game';
-import {
+} from "openfront-client/src/core/game/Game";
+import type {
   PartialGameRecord as OriginalPartialGameRecord,
   TeamCountConfig,
   GameID,
-} from 'openfront-client/src/core/Schemas';
+} from "openfront-client/src/core/Schemas";
 
-type OriginalInfo = OriginalPartialGameRecord['info'];
-type OriginalConfig = OriginalInfo['config'];
+type OriginalInfo = OriginalPartialGameRecord["info"];
+type OriginalConfig = OriginalInfo["config"];
 
-type ModifiedConfig = Omit<OriginalConfig, 'randomSpawn'> & {
+type ModifiedConfig = Omit<OriginalConfig, "randomSpawn"> & {
   randomSpawn?: boolean;
 };
 
-type ModifiedInfo = Omit<OriginalInfo, 'lobbyCreatedAt' | 'lobbyFillTime' | 'config'> & {
+type ModifiedInfo = Omit<
+  OriginalInfo,
+  "lobbyCreatedAt" | "lobbyFillTime" | "config"
+> & {
   lobbyCreatedAt?: number;
   lobbyFillTime?: number;
   config: ModifiedConfig;
 };
 
-export type PartialGameRecord = Omit<OriginalPartialGameRecord, 'info' | 'version'> & {
+export type PartialGameRecord = Omit<
+  OriginalPartialGameRecord,
+  "info" | "version"
+> & {
   info: ModifiedInfo;
   version: string;
 };
 
 export { TeamCountConfig, GameID };
-import {
-  ClanLeaderboardEntry
-} from 'openfront-client/src/core/ApiSchemas';
-export {
+import { ClanLeaderboardEntry } from "openfront-client/src/core/ApiSchemas";
+export type {
   PlayerProfile,
   ClanLeaderboardResponse,
-} from 'openfront-client/src/core/ApiSchemas';
-import type { PlayerGame as OriginalPlayerGame } from 'openfront-client/src/core/ApiSchemas';
+} from "openfront-client/src/core/ApiSchemas";
+import type { PlayerGame as OriginalPlayerGame } from "openfront-client/src/core/ApiSchemas";
 
-export type PlayerSession = Omit<OriginalPlayerGame, 'start' | 'mode' | 'type' | 'map' | 'difficulty'> & {
+export type PlayerSession = Omit<
+  OriginalPlayerGame,
+  "start" | "mode" | "type" | "map" | "difficulty"
+> & {
   gameStart: string;
   gameEnd: string;
   gameType: GameType;
@@ -49,7 +56,6 @@ export type PlayerSession = Omit<OriginalPlayerGame, 'start' | 'mode' | 'type' |
 };
 
 export type PlayerSessions = PlayerSession[];
-
 
 export interface WL {
   wl: number[];
@@ -62,8 +68,8 @@ export interface TeamClanLeaderboardEntry extends ClanLeaderboardEntry {
 }
 
 export type ClanStats = {
-  clan: TeamClanLeaderboardEntry
-}
+  clan: TeamClanLeaderboardEntry;
+};
 export type ClanSession = {
   gameId: GameID;
   clanTag: string;
@@ -80,7 +86,7 @@ export type GameListOptions = {
   type?: GameType;
   limit?: number;
   offset?: number;
-  start: string; // ISO 8601 timestamp (string) for the start of the range. 
+  start: string; // ISO 8601 timestamp (string) for the start of the range.
   end: string; // ISO 8601 timestamp (string) for the end of the range.
 };
 
@@ -99,12 +105,12 @@ export type ApiError = {
   statusCode: number;
   message?: string;
   body: string;
-}
+};
 
 export type ClanOptions = {
   start?: string;
   end?: string;
-}
+};
 
 export interface PaginatedGameList {
   items: GameListItem[];
