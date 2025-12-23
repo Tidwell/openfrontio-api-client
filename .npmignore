@@ -5,3 +5,6 @@ tests-e2e
 tsconfig.json
 vitest.config.ts
 vitest.e2e.config.ts
+coverage
+docs
+API.md
