@@ -80,6 +80,8 @@ export type GameListOptions = {
   type?: GameType;
   limit?: number;
   offset?: number;
+  start: string; // ISO 8601 timestamp (string) for the start of the range. 
+  end: string; // ISO 8601 timestamp (string) for the end of the range.
 };
 
 export type GameListItem = {
@@ -102,7 +104,6 @@ export type ApiError = {
 export type ClanOptions = {
   start?: string;
   end?: string;
-  limit?: number;
 }
 
 // const types = {
@@ -111,6 +112,15 @@ export type ClanOptions = {
 //   ...ApiSchemas,
 //   ...Schemas
 // };
+
+export interface PaginatedGameList {
+  items: GameListItem[];
+  total: number;
+  range: {
+    start: number;
+    end: number;
+  };
+}
 
 // console.log(Object.keys(Schemas));
 

@@ -24,7 +24,7 @@
     "strictPropertyInitialization": false
   },
   "include": [
-    "src/**/*",
+    "src/**/*", "tests/index.test.ts",
   ],
   "exclude": ["node_modules"]
 }

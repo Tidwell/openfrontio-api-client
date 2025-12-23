@@ -1,4 +1,5 @@
 import https from 'https';
+import { IncomingHttpHeaders } from 'http';
 import querystring from 'querystring';
 import { convertStringBigIntsToBigInts } from './utils';
 
@@ -13,9 +14,15 @@ import {
   ClanStats,
   ClanSession,
   PlayerSessions,
+  PaginatedGameList,
 } from './types';
 
 const HOSTNAME = 'api.openfront.io';
+
+interface ApiResponse<T> {
+  body: T;
+  headers: IncomingHttpHeaders;
+}
 
 /**
  * Helper function to make HTTPS GET requests.
@@ -26,7 +33,7 @@ const HOSTNAME = 'api.openfront.io';
 function makeRequest<T>(
   path: string,
   params: Record<string, any> = {}
-): Promise<T> {
+): Promise<ApiResponse<T>> {
   return new Promise((resolve, reject) => {
     // Filter out undefined/null parameters
     const cleanParams: Record<string, any> = {};
@@ -65,7 +72,7 @@ function makeRequest<T>(
         try {
           if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
             const d = JSON.parse(data) as T;
-            resolve(d);
+            resolve({ body: d, headers: res.headers });
           } else {
             const error: ApiError = {
               statusCode: res.statusCode || 500,
@@ -89,73 +96,94 @@ function makeRequest<T>(
 }
 
 /**
- * Games
- */
-
-/**
  * List Game Metadata
  * Get game IDs and basic metadata for games that started within a specified time range.
- * @param start - Unix timestamp (number) for the start of the range.
- * @param end - Unix timestamp (number) for the end of the range.
+ * @param params - Object containing start, end, and optional type/limit/offset params.
  */
-export function getGames(
-  start: number,
-  end: number,
-  options: GameListOptions = {}
-): Promise<GameListItem[]> {
+export async function getGames(params: GameListOptions): Promise<PaginatedGameList> {
+  const { start, end } = params;
   if (!start || !end) {
     throw new Error('Start and End timestamps are required.');
   }
-  return makeRequest<GameListItem[]>('/public/games', {
-    start,
-    end,
-    ...options,
-  });
+  const { body, headers } = await makeRequest<GameListItem[]>('/public/games', params);
+
+  let total = 0;
+  let rangeStart = 0;
+  let rangeEnd = 0;
+  const rangeHeader = headers['content-range'];
+
+  if (rangeHeader && typeof rangeHeader === 'string') {
+    const match = rangeHeader.match(/games (\d+)-(\d+)\/(\d+)/);
+    if (match) {
+      rangeStart = parseInt(match[1], 10);
+      rangeEnd = parseInt(match[2], 10);
+      total = parseInt(match[3], 10);
+    }
+  }
+
+  return {
+    items: body,
+    total,
+    range: {
+      start: rangeStart,
+      end: rangeEnd,
+    },
+  };
+}
+
+export interface GetGameInfoParams {
+  gameId: string;
+  includeTurns?: boolean;
 }
 
 /**
  * Get Game Info
  * Retrieve detailed information about a specific game.
- * Note: The API response now follows the nested PartialGameRecord structure (version, info, turns).
  */
-export async function getGameInfo(
-  gameId: string,
-  includeTurns: boolean = true
-): Promise<PartialGameRecord> {
-  const params: { turns?: string } = {};
+export async function getGameInfo(params: GetGameInfoParams): Promise<PartialGameRecord> {
+  const { gameId, includeTurns = true } = params;
+  const requestParams: { turns?: string } = {};
   if (includeTurns === false) {
-    params.turns = 'false';
+    requestParams.turns = 'false';
   }
-  const game = await makeRequest<PartialGameRecord>(`/public/game/${gameId}`, params);
-  return convertStringBigIntsToBigInts(game);
+  const { body } = await makeRequest<PartialGameRecord>(`/public/game/${gameId}`, requestParams);
+  return convertStringBigIntsToBigInts(body);
 }
 
 /**
  * Players
  */
 
+export interface GetPlayerInfoParams {
+  playerId: string;
+}
+
 /**
  * Get Player Info
  * Retrieve information and stats for a specific player.
  */
-export async function getPlayerInfo(playerId: string): Promise<PlayerProfile> {
-  const profile = await makeRequest<PlayerProfile>(
+export async function getPlayerInfo(params: GetPlayerInfoParams): Promise<PlayerProfile> {
+  const { playerId } = params;
+  const { body } = await makeRequest<PlayerProfile>(
     `/public/player/${playerId}`
   );
-  return convertStringBigIntsToBigInts(profile);
+  return convertStringBigIntsToBigInts(body);
+}
+
+export interface GetPlayerSessionsParams {
+  playerId: string;
 }
 
 /**
  * Get Player Sessions
  * Retrieve a list of games & client ids (session ids) for a specific player.
  */
-export async function getPlayerSessions(
-  playerId: string
-): Promise<PlayerSessions> {
-  const sessions = await makeRequest<PlayerSessions>(
+export async function getPlayerSessions(params: GetPlayerSessionsParams): Promise<PlayerSessions> {
+  const { playerId } = params;
+  const { body } = await makeRequest<PlayerSessions>(
     `/public/player/${playerId}/sessions`
   );
-  return convertStringBigIntsToBigInts(sessions);
+  return convertStringBigIntsToBigInts(body);
 }
 
 /**
@@ -166,36 +194,43 @@ export async function getPlayerSessions(
  * Clan Leaderboard
  * Shows the top 100 clans by weighted wins.
  */
-export function getClanLeaderboard(): Promise<ClanLeaderboardResponse[]> {
-  return makeRequest<ClanLeaderboardResponse[]>('/public/clans/leaderboard');
+export async function getClanLeaderboard(): Promise<ClanLeaderboardResponse[]> {
+  const { body } = await makeRequest<ClanLeaderboardResponse[]>('/public/clans/leaderboard');
+  return body;
+}
+
+export interface GetClanStatsParams extends ClanOptions {
+  clanTag: string;
 }
 
 /**
  * Clan Stats
  * Displays comprehensive clan performance statistics.
  */
-export function getClanStats(
-  clanTag: string,
-  options: ClanOptions = {}
-): Promise<ClanStats> {
-  return makeRequest<ClanStats>(
+export async function getClanStats(params: GetClanStatsParams): Promise<ClanStats> {
+  const { clanTag, ...options } = params;
+  const { body } = await makeRequest<ClanStats>(
     `/public/clan/${clanTag}`,
     options as Record<string, any>
   );
+  return body;
+}
+
+export interface GetClanSessionsParams extends ClanOptions {
+  clanTag: string;
 }
 
 /**
  * Clan Sessions
  * Retrieve clan sessions for a specific clan.
  */
-export function getClanSessions(
-  clanTag: string,
-  options: ClanOptions = {}
-): Promise<ClanSession[]> {
-  return makeRequest<ClanSession[]>(
+export async function getClanSessions(params: GetClanSessionsParams): Promise<ClanSession[]> {
+  const { clanTag, ...options } = params;
+  const { body } = await makeRequest<ClanSession[]>(
     `/public/clan/${clanTag}/sessions`,
     options as Record<string, any>
   );
+  return body;
 }
 
 export default {

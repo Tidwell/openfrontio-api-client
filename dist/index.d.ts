@@ -1,3 +1,97 @@
+type _JSONSchema = boolean | JSONSchema;
+type JSONSchema = {
+    [k: string]: unknown;
+    $schema?: "https://json-schema.org/draft/2020-12/schema" | "http://json-schema.org/draft-07/schema#" | "http://json-schema.org/draft-04/schema#";
+    $id?: string;
+    $anchor?: string;
+    $ref?: string;
+    $dynamicRef?: string;
+    $dynamicAnchor?: string;
+    $vocabulary?: Record<string, boolean>;
+    $comment?: string;
+    $defs?: Record<string, JSONSchema>;
+    type?: "object" | "array" | "string" | "number" | "boolean" | "null" | "integer";
+    additionalItems?: _JSONSchema;
+    unevaluatedItems?: _JSONSchema;
+    prefixItems?: _JSONSchema[];
+    items?: _JSONSchema | _JSONSchema[];
+    contains?: _JSONSchema;
+    additionalProperties?: _JSONSchema;
+    unevaluatedProperties?: _JSONSchema;
+    properties?: Record<string, _JSONSchema>;
+    patternProperties?: Record<string, _JSONSchema>;
+    dependentSchemas?: Record<string, _JSONSchema>;
+    propertyNames?: _JSONSchema;
+    if?: _JSONSchema;
+    then?: _JSONSchema;
+    else?: _JSONSchema;
+    allOf?: JSONSchema[];
+    anyOf?: JSONSchema[];
+    oneOf?: JSONSchema[];
+    not?: _JSONSchema;
+    multipleOf?: number;
+    maximum?: number;
+    exclusiveMaximum?: number | boolean;
+    minimum?: number;
+    exclusiveMinimum?: number | boolean;
+    maxLength?: number;
+    minLength?: number;
+    pattern?: string;
+    maxItems?: number;
+    minItems?: number;
+    uniqueItems?: boolean;
+    maxContains?: number;
+    minContains?: number;
+    maxProperties?: number;
+    minProperties?: number;
+    required?: string[];
+    dependentRequired?: Record<string, string[]>;
+    enum?: Array<string | number | boolean | null>;
+    const?: string | number | boolean | null;
+    id?: string;
+    title?: string;
+    description?: string;
+    default?: unknown;
+    deprecated?: boolean;
+    readOnly?: boolean;
+    writeOnly?: boolean;
+    nullable?: boolean;
+    examples?: unknown[];
+    format?: string;
+    contentMediaType?: string;
+    contentEncoding?: string;
+    contentSchema?: JSONSchema;
+    _prefault?: unknown;
+};
+type BaseSchema = JSONSchema;
+
+/** The Standard interface. */
+interface StandardTypedV1<Input = unknown, Output = Input> {
+    /** The Standard properties. */
+    readonly "~standard": StandardTypedV1.Props<Input, Output>;
+}
+declare namespace StandardTypedV1 {
+    /** The Standard properties interface. */
+    interface Props<Input = unknown, Output = Input> {
+        /** The version number of the standard. */
+        readonly version: 1;
+        /** The vendor name of the schema library. */
+        readonly vendor: string;
+        /** Inferred types associated with the schema. */
+        readonly types?: Types<Input, Output> | undefined;
+    }
+    /** The Standard types interface. */
+    interface Types<Input = unknown, Output = Input> {
+        /** The input type of the schema. */
+        readonly input: Input;
+        /** The output type of the schema. */
+        readonly output: Output;
+    }
+    /** Infers the input type of a Standard. */
+    type InferInput<Schema extends StandardTypedV1> = NonNullable<Schema["~standard"]["types"]>["input"];
+    /** Infers the output type of a Standard. */
+    type InferOutput<Schema extends StandardTypedV1> = NonNullable<Schema["~standard"]["types"]>["output"];
+}
 /** The Standard Schema interface. */
 interface StandardSchemaV1<Input = unknown, Output = Input> {
     /** The Standard Schema properties. */
@@ -5,15 +99,9 @@ interface StandardSchemaV1<Input = unknown, Output = Input> {
 }
 declare namespace StandardSchemaV1 {
     /** The Standard Schema properties interface. */
-    interface Props<Input = unknown, Output = Input> {
-        /** The version number of the standard. */
-        readonly version: 1;
-        /** The vendor name of the schema library. */
-        readonly vendor: string;
+    interface Props<Input = unknown, Output = Input> extends StandardTypedV1.Props<Input, Output> {
         /** Validates unknown input values. */
-        readonly validate: (value: unknown) => Result<Output> | Promise<Result<Output>>;
-        /** Inferred types associated with the schema. */
-        readonly types?: Types<Input, Output> | undefined;
+        readonly validate: (value: unknown, options?: StandardSchemaV1.Options | undefined) => Result<Output> | Promise<Result<Output>>;
     }
     /** The result interface of the validate function. */
     type Result<Output> = SuccessResult<Output> | FailureResult;
@@ -21,8 +109,12 @@ declare namespace StandardSchemaV1 {
     interface SuccessResult<Output> {
         /** The typed output value. */
         readonly value: Output;
-        /** The non-existent issues. */
+        /** The absence of issues indicates success. */
         readonly issues?: undefined;
+    }
+    interface Options {
+        /** Implicit support for additional vendor-specific parameters, if needed. */
+        readonly libraryOptions?: Record<string, unknown> | undefined;
     }
     /** The result interface if validation fails. */
     interface FailureResult {
@@ -41,20 +133,179 @@ declare namespace StandardSchemaV1 {
         /** The key representing a path segment. */
         readonly key: PropertyKey;
     }
-    /** The Standard Schema types interface. */
-    interface Types<Input = unknown, Output = Input> {
-        /** The input type of the schema. */
-        readonly input: Input;
-        /** The output type of the schema. */
-        readonly output: Output;
+    /** The Standard types interface. */
+    interface Types<Input = unknown, Output = Input> extends StandardTypedV1.Types<Input, Output> {
     }
-    /** Infers the input type of a Standard Schema. */
-    type InferInput<Schema extends StandardSchemaV1> = NonNullable<Schema["~standard"]["types"]>["input"];
-    /** Infers the output type of a Standard Schema. */
-    type InferOutput<Schema extends StandardSchemaV1> = NonNullable<Schema["~standard"]["types"]>["output"];
+    /** Infers the input type of a Standard. */
+    type InferInput<Schema extends StandardTypedV1> = StandardTypedV1.InferInput<Schema>;
+    /** Infers the output type of a Standard. */
+    type InferOutput<Schema extends StandardTypedV1> = StandardTypedV1.InferOutput<Schema>;
+}
+/** The Standard JSON Schema interface. */
+interface StandardJSONSchemaV1<Input = unknown, Output = Input> {
+    /** The Standard JSON Schema properties. */
+    readonly "~standard": StandardJSONSchemaV1.Props<Input, Output>;
+}
+declare namespace StandardJSONSchemaV1 {
+    /** The Standard JSON Schema properties interface. */
+    interface Props<Input = unknown, Output = Input> extends StandardTypedV1.Props<Input, Output> {
+        /** Methods for generating the input/output JSON Schema. */
+        readonly jsonSchema: Converter;
+    }
+    /** The Standard JSON Schema converter interface. */
+    interface Converter {
+        /** Converts the input type to JSON Schema. May throw if conversion is not supported. */
+        readonly input: (options: StandardJSONSchemaV1.Options) => Record<string, unknown>;
+        /** Converts the output type to JSON Schema. May throw if conversion is not supported. */
+        readonly output: (options: StandardJSONSchemaV1.Options) => Record<string, unknown>;
+    }
+    /** The target version of the generated JSON Schema.
+     *
+     * It is *strongly recommended* that implementers support `"draft-2020-12"` and `"draft-07"`, as they are both in wide use.
+     *
+     * The `"openapi-3.0"` target is intended as a standardized specifier for OpenAPI 3.0 which is a superset of JSON Schema `"draft-04"`.
+     *
+     * All other targets can be implemented on a best-effort basis. Libraries should throw if they don't support a specified target.
+     */
+    type Target = "draft-2020-12" | "draft-07" | "openapi-3.0" | ({} & string);
+    /** The options for the input/output methods. */
+    interface Options {
+        /** Specifies the target version of the generated JSON Schema. Support for all versions is on a best-effort basis. If a given version is not supported, the library should throw. */
+        readonly target: Target;
+        /** Implicit support for additional vendor-specific parameters, if needed. */
+        readonly libraryOptions?: Record<string, unknown> | undefined;
+    }
+    /** The Standard types interface. */
+    interface Types<Input = unknown, Output = Input> extends StandardTypedV1.Types<Input, Output> {
+    }
+    /** Infers the input type of a Standard. */
+    type InferInput<Schema extends StandardTypedV1> = StandardTypedV1.InferInput<Schema>;
+    /** Infers the output type of a Standard. */
+    type InferOutput<Schema extends StandardTypedV1> = StandardTypedV1.InferOutput<Schema>;
+}
+interface StandardSchemaWithJSONProps<Input = unknown, Output = Input> extends StandardSchemaV1.Props<Input, Output>, StandardJSONSchemaV1.Props<Input, Output> {
+}
+
+declare const $output: unique symbol;
+type $output = typeof $output;
+declare const $input: unique symbol;
+type $input = typeof $input;
+type $replace<Meta, S extends $ZodType> = Meta extends $output ? output<S> : Meta extends $input ? input<S> : Meta extends (infer M)[] ? $replace<M, S>[] : Meta extends (...args: infer P) => infer R ? (...args: {
+    [K in keyof P]: $replace<P[K], S>;
+}) => $replace<R, S> : Meta extends object ? {
+    [K in keyof Meta]: $replace<Meta[K], S>;
+} : Meta;
+type MetadataType = object | undefined;
+declare class $ZodRegistry<Meta extends MetadataType = MetadataType, Schema extends $ZodType = $ZodType> {
+    _meta: Meta;
+    _schema: Schema;
+    _map: WeakMap<Schema, $replace<Meta, Schema>>;
+    _idmap: Map<string, Schema>;
+    add<S extends Schema>(schema: S, ..._meta: undefined extends Meta ? [$replace<Meta, S>?] : [$replace<Meta, S>]): this;
+    clear(): this;
+    remove(schema: Schema): this;
+    get<S extends Schema>(schema: S): $replace<Meta, S> | undefined;
+    has(schema: Schema): boolean;
+}
+interface JSONSchemaMeta {
+    id?: string | undefined;
+    title?: string | undefined;
+    description?: string | undefined;
+    deprecated?: boolean | undefined;
+    [k: string]: unknown;
+}
+interface GlobalMeta extends JSONSchemaMeta {
+}
+
+type Processor<T extends $ZodType = $ZodType> = (schema: T, ctx: ToJSONSchemaContext, json: BaseSchema, params: ProcessParams) => void;
+interface JSONSchemaGeneratorParams {
+    processors: Record<string, Processor>;
+    /** A registry used to look up metadata for each schema. Any schema with an `id` property will be extracted as a $def.
+     *  @default globalRegistry */
+    metadata?: $ZodRegistry<Record<string, any>>;
+    /** The JSON Schema version to target.
+     * - `"draft-2020-12"` — Default. JSON Schema Draft 2020-12
+     * - `"draft-07"` — JSON Schema Draft 7
+     * - `"draft-04"` — JSON Schema Draft 4
+     * - `"openapi-3.0"` — OpenAPI 3.0 Schema Object */
+    target?: "draft-04" | "draft-07" | "draft-2020-12" | "openapi-3.0" | ({} & string) | undefined;
+    /** How to handle unrepresentable types.
+     * - `"throw"` — Default. Unrepresentable types throw an error
+     * - `"any"` — Unrepresentable types become `{}` */
+    unrepresentable?: "throw" | "any";
+    /** Arbitrary custom logic that can be used to modify the generated JSON Schema. */
+    override?: (ctx: {
+        zodSchema: $ZodTypes;
+        jsonSchema: BaseSchema;
+        path: (string | number)[];
+    }) => void;
+    /** Whether to extract the `"input"` or `"output"` type. Relevant to transforms, defaults, coerced primitives, etc.
+     * - `"output"` — Default. Convert the output schema.
+     * - `"input"` — Convert the input schema. */
+    io?: "input" | "output";
+    cycles?: "ref" | "throw";
+    reused?: "ref" | "inline";
+    external?: {
+        registry: $ZodRegistry<{
+            id?: string | undefined;
+        }>;
+        uri?: ((id: string) => string) | undefined;
+        defs: Record<string, BaseSchema>;
+    } | undefined;
+}
+/**
+ * Parameters for the toJSONSchema function.
+ */
+type ToJSONSchemaParams = Omit<JSONSchemaGeneratorParams, "processors" | "external">;
+interface ProcessParams {
+    schemaPath: $ZodType[];
+    path: (string | number)[];
+}
+interface Seen {
+    /** JSON Schema result for this Zod schema */
+    schema: BaseSchema;
+    /** A cached version of the schema that doesn't get overwritten during ref resolution */
+    def?: BaseSchema;
+    defId?: string | undefined;
+    /** Number of times this schema was encountered during traversal */
+    count: number;
+    /** Cycle path */
+    cycle?: (string | number)[] | undefined;
+    isParent?: boolean | undefined;
+    ref?: $ZodType | undefined | null;
+    /** JSON Schema property path for this schema */
+    path?: (string | number)[] | undefined;
+}
+interface ToJSONSchemaContext {
+    processors: Record<string, Processor>;
+    metadataRegistry: $ZodRegistry<Record<string, any>>;
+    target: "draft-04" | "draft-07" | "draft-2020-12" | "openapi-3.0" | ({} & string);
+    unrepresentable: "throw" | "any";
+    override: (ctx: {
+        zodSchema: $ZodType;
+        jsonSchema: BaseSchema;
+        path: (string | number)[];
+    }) => void;
+    io: "input" | "output";
+    counter: number;
+    seen: Map<$ZodType, Seen>;
+    cycles: "ref" | "throw";
+    reused: "ref" | "inline";
+    external?: {
+        registry: $ZodRegistry<{
+            id?: string | undefined;
+        }>;
+        uri?: ((id: string) => string) | undefined;
+        defs: Record<string, BaseSchema>;
+    } | undefined;
+}
+type ZodStandardSchemaWithJSON$1<T> = StandardSchemaWithJSONProps<input<T>, output<T>>;
+interface ZodStandardJSONSchemaPayload<T> extends BaseSchema {
+    "~standard": ZodStandardSchemaWithJSON$1<T>;
 }
 
 type JWTAlgorithm = "HS256" | "HS384" | "HS512" | "RS256" | "RS384" | "RS512" | "ES256" | "ES384" | "ES512" | "PS256" | "PS384" | "PS512" | "EdDSA" | (string & {});
+type MimeTypes = "application/json" | "application/xml" | "application/x-www-form-urlencoded" | "application/javascript" | "application/pdf" | "application/zip" | "application/vnd.ms-excel" | "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" | "application/msword" | "application/vnd.openxmlformats-officedocument.wordprocessingml.document" | "application/vnd.ms-powerpoint" | "application/vnd.openxmlformats-officedocument.presentationml.presentation" | "application/octet-stream" | "application/graphql" | "text/html" | "text/plain" | "text/css" | "text/javascript" | "text/csv" | "image/png" | "image/jpeg" | "image/gif" | "image/svg+xml" | "image/webp" | "audio/mpeg" | "audio/ogg" | "audio/wav" | "audio/webm" | "video/mp4" | "video/webm" | "video/ogg" | "font/woff" | "font/woff2" | "font/ttf" | "font/otf" | "multipart/form-data" | (string & {});
 type IsAny<T> = 0 extends 1 & T ? true : false;
 type Omit$1<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 type MakePartial<T, K extends keyof T> = Omit$1<T, K> & InexactPartial<Pick<T, K>>;
@@ -108,7 +359,7 @@ declare abstract class Class {
 
 declare const version: {
     readonly major: 4;
-    readonly minor: 1;
+    readonly minor: 2;
     readonly patch: number;
 };
 
@@ -177,6 +428,8 @@ interface _$ZodTypeInternals {
     bag: Record<string, unknown>;
     /** @internal The set of issues this schema might throw during type checking. */
     isst: $ZodIssueBase;
+    /** @internal Subject to change, not a public API. */
+    processJSONSchema?: ((ctx: ToJSONSchemaContext, json: BaseSchema, params: ProcessParams) => void) | undefined;
     /** An optional method used to override `toJSONSchema` logic. */
     toJSONSchema?: () => unknown;
     /** @internal The parent of this schema. Only set during certain clone operations. */
@@ -193,6 +446,8 @@ type $ZodStandardSchema<T> = StandardSchemaV1.Props<input<T>, output<T>>;
 type SomeType = {
     _zod: _$ZodTypeInternals;
 };
+interface _$ZodType<T extends $ZodTypeInternals = $ZodTypeInternals> extends $ZodType<T["output"], T["input"], T> {
+}
 interface $ZodType<O = unknown, I = unknown, Internals extends $ZodTypeInternals<O, I> = $ZodTypeInternals<O, I>> {
     _zod: Internals;
     "~standard": $ZodStandardSchema<this>;
@@ -218,6 +473,9 @@ interface $ZodStringInternals<Input> extends $ZodTypeInternals<string, Input> {
         contentEncoding: string;
     }>;
 }
+interface $ZodString<Input = unknown> extends _$ZodType<$ZodStringInternals<Input>> {
+}
+declare const $ZodString: $constructor<$ZodString>;
 interface $ZodStringFormatDef<Format extends string = string> extends $ZodStringDef, $ZodCheckStringFormatDef<Format> {
 }
 interface $ZodStringFormatInternals<Format extends string = string> extends $ZodStringInternals<string>, $ZodCheckStringFormatInternals {
@@ -424,6 +682,10 @@ interface $ZodNumberInternals<Input = unknown> extends $ZodTypeInternals<number,
         pattern: RegExp;
     }>;
 }
+interface $ZodNumber<Input = unknown> extends $ZodType {
+    _zod: $ZodNumberInternals<Input>;
+}
+declare const $ZodNumber: $constructor<$ZodNumber>;
 interface $ZodBooleanDef extends $ZodTypeDef {
     type: "boolean";
     coerce?: boolean;
@@ -434,6 +696,10 @@ interface $ZodBooleanInternals<T = unknown> extends $ZodTypeInternals<boolean, T
     def: $ZodBooleanDef;
     isst: $ZodIssueInvalidType;
 }
+interface $ZodBoolean<T = unknown> extends $ZodType {
+    _zod: $ZodBooleanInternals<T>;
+}
+declare const $ZodBoolean: $constructor<$ZodBoolean>;
 interface $ZodBigIntDef extends $ZodTypeDef {
     type: "bigint";
     coerce?: boolean;
@@ -449,6 +715,108 @@ interface $ZodBigIntInternals<T = unknown> extends $ZodTypeInternals<bigint, T> 
         format: string;
     }>;
 }
+interface $ZodBigInt<T = unknown> extends $ZodType {
+    _zod: $ZodBigIntInternals<T>;
+}
+declare const $ZodBigInt: $constructor<$ZodBigInt>;
+interface $ZodSymbolDef extends $ZodTypeDef {
+    type: "symbol";
+}
+interface $ZodSymbolInternals extends $ZodTypeInternals<symbol, symbol> {
+    def: $ZodSymbolDef;
+    isst: $ZodIssueInvalidType;
+}
+interface $ZodSymbol extends $ZodType {
+    _zod: $ZodSymbolInternals;
+}
+declare const $ZodSymbol: $constructor<$ZodSymbol>;
+interface $ZodUndefinedDef extends $ZodTypeDef {
+    type: "undefined";
+}
+interface $ZodUndefinedInternals extends $ZodTypeInternals<undefined, undefined> {
+    pattern: RegExp;
+    def: $ZodUndefinedDef;
+    values: PrimitiveSet;
+    isst: $ZodIssueInvalidType;
+}
+interface $ZodUndefined extends $ZodType {
+    _zod: $ZodUndefinedInternals;
+}
+declare const $ZodUndefined: $constructor<$ZodUndefined>;
+interface $ZodNullDef extends $ZodTypeDef {
+    type: "null";
+}
+interface $ZodNullInternals extends $ZodTypeInternals<null, null> {
+    pattern: RegExp;
+    def: $ZodNullDef;
+    values: PrimitiveSet;
+    isst: $ZodIssueInvalidType;
+}
+interface $ZodNull extends $ZodType {
+    _zod: $ZodNullInternals;
+}
+declare const $ZodNull: $constructor<$ZodNull>;
+interface $ZodAnyDef extends $ZodTypeDef {
+    type: "any";
+}
+interface $ZodAnyInternals extends $ZodTypeInternals<any, any> {
+    def: $ZodAnyDef;
+    isst: never;
+}
+interface $ZodAny extends $ZodType {
+    _zod: $ZodAnyInternals;
+}
+declare const $ZodAny: $constructor<$ZodAny>;
+interface $ZodUnknownDef extends $ZodTypeDef {
+    type: "unknown";
+}
+interface $ZodUnknownInternals extends $ZodTypeInternals<unknown, unknown> {
+    def: $ZodUnknownDef;
+    isst: never;
+}
+interface $ZodUnknown extends $ZodType {
+    _zod: $ZodUnknownInternals;
+}
+declare const $ZodUnknown: $constructor<$ZodUnknown>;
+interface $ZodNeverDef extends $ZodTypeDef {
+    type: "never";
+}
+interface $ZodNeverInternals extends $ZodTypeInternals<never, never> {
+    def: $ZodNeverDef;
+    isst: $ZodIssueInvalidType;
+}
+interface $ZodNever extends $ZodType {
+    _zod: $ZodNeverInternals;
+}
+declare const $ZodNever: $constructor<$ZodNever>;
+interface $ZodVoidDef extends $ZodTypeDef {
+    type: "void";
+}
+interface $ZodVoidInternals extends $ZodTypeInternals<void, void> {
+    def: $ZodVoidDef;
+    isst: $ZodIssueInvalidType;
+}
+interface $ZodVoid extends $ZodType {
+    _zod: $ZodVoidInternals;
+}
+declare const $ZodVoid: $constructor<$ZodVoid>;
+interface $ZodDateDef extends $ZodTypeDef {
+    type: "date";
+    coerce?: boolean;
+}
+interface $ZodDateInternals<T = unknown> extends $ZodTypeInternals<Date, T> {
+    def: $ZodDateDef;
+    isst: $ZodIssueInvalidType;
+    bag: LoosePartial<{
+        minimum: Date;
+        maximum: Date;
+        format: string;
+    }>;
+}
+interface $ZodDate<T = unknown> extends $ZodType {
+    _zod: $ZodDateInternals<T>;
+}
+declare const $ZodDate: $constructor<$ZodDate>;
 interface $ZodArrayDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
     type: "array";
     element: T;
@@ -530,7 +898,6 @@ type $ZodLooseShape = Record<string, any>;
 interface $ZodObject<
 /** @ts-ignore Cast variance */
 out Shape extends Readonly<$ZodShape> = Readonly<$ZodShape>, out Params extends $ZodObjectConfig = $ZodObjectConfig> extends $ZodType<any, any, $ZodObjectInternals<Shape, Params>> {
-    "~standard": $ZodStandardSchema<this>;
 }
 declare const $ZodObject: $constructor<$ZodObject>;
 type $InferUnionOutput<T extends SomeType> = T extends any ? output<T> : never;
@@ -538,6 +905,7 @@ type $InferUnionInput<T extends SomeType> = T extends any ? input<T> : never;
 interface $ZodUnionDef<Options extends readonly SomeType[] = readonly $ZodType[]> extends $ZodTypeDef {
     type: "union";
     options: Options;
+    inclusive?: boolean;
 }
 type IsOptionalIn<T extends SomeType> = T extends OptionalInSchema ? true : false;
 type IsOptionalOut<T extends SomeType> = T extends OptionalOutSchema ? true : false;
@@ -626,6 +994,8 @@ interface $ZodRecordDef<Key extends $ZodRecordKey = $ZodRecordKey, Value extends
     type: "record";
     keyType: Key;
     valueType: Value;
+    /** @default "strict" - errors on keys not matching keyType. "loose" passes through non-matching keys unchanged. */
+    mode?: "strict" | "loose";
 }
 type $InferZodRecordOutput<Key extends $ZodRecordKey = $ZodRecordKey, Value extends SomeType = $ZodType> = Key extends $partial ? Partial<Record<output<Key>, output<Value>>> : Record<output<Key>, output<Value>>;
 type $InferZodRecordInput<Key extends $ZodRecordKey = $ZodRecordKey, Value extends SomeType = $ZodType> = Key extends $partial ? Partial<Record<input<Key>, input<Value>>> : Record<input<Key>, input<Value>>;
@@ -642,6 +1012,35 @@ interface $ZodRecord<Key extends $ZodRecordKey = $ZodRecordKey, Value extends So
     _zod: $ZodRecordInternals<Key, Value>;
 }
 declare const $ZodRecord: $constructor<$ZodRecord>;
+interface $ZodMapDef<Key extends SomeType = $ZodType, Value extends SomeType = $ZodType> extends $ZodTypeDef {
+    type: "map";
+    keyType: Key;
+    valueType: Value;
+}
+interface $ZodMapInternals<Key extends SomeType = $ZodType, Value extends SomeType = $ZodType> extends $ZodTypeInternals<Map<output<Key>, output<Value>>, Map<input<Key>, input<Value>>> {
+    def: $ZodMapDef<Key, Value>;
+    isst: $ZodIssueInvalidType | $ZodIssueInvalidKey | $ZodIssueInvalidElement<unknown>;
+    optin?: "optional" | undefined;
+    optout?: "optional" | undefined;
+}
+interface $ZodMap<Key extends SomeType = $ZodType, Value extends SomeType = $ZodType> extends $ZodType {
+    _zod: $ZodMapInternals<Key, Value>;
+}
+declare const $ZodMap: $constructor<$ZodMap>;
+interface $ZodSetDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+    type: "set";
+    valueType: T;
+}
+interface $ZodSetInternals<T extends SomeType = $ZodType> extends $ZodTypeInternals<Set<output<T>>, Set<input<T>>> {
+    def: $ZodSetDef<T>;
+    isst: $ZodIssueInvalidType;
+    optin?: "optional" | undefined;
+    optout?: "optional" | undefined;
+}
+interface $ZodSet<T extends SomeType = $ZodType> extends $ZodType {
+    _zod: $ZodSetInternals<T>;
+}
+declare const $ZodSet: $constructor<$ZodSet>;
 type $InferEnumOutput<T extends EnumLike> = T[keyof T] & {};
 type $InferEnumInput<T extends EnumLike> = T[keyof T] & {};
 interface $ZodEnumDef<T extends EnumLike = EnumLike> extends $ZodTypeDef {
@@ -676,6 +1075,30 @@ interface $ZodLiteral<T extends Literal = Literal> extends $ZodType {
     _zod: $ZodLiteralInternals<T>;
 }
 declare const $ZodLiteral: $constructor<$ZodLiteral>;
+type _File = typeof globalThis extends {
+    File: infer F extends new (...args: any[]) => any;
+} ? InstanceType<F> : {};
+/** Do not reference this directly. */
+interface File extends _File {
+    readonly type: string;
+    readonly size: number;
+}
+interface $ZodFileDef extends $ZodTypeDef {
+    type: "file";
+}
+interface $ZodFileInternals extends $ZodTypeInternals<File, File> {
+    def: $ZodFileDef;
+    isst: $ZodIssueInvalidType;
+    bag: LoosePartial<{
+        minimum: number;
+        maximum: number;
+        mime: MimeTypes[];
+    }>;
+}
+interface $ZodFile extends $ZodType {
+    _zod: $ZodFileInternals;
+}
+declare const $ZodFile: $constructor<$ZodFile>;
 interface $ZodTransformDef extends $ZodTypeDef {
     type: "transform";
     transform: (input: unknown, payload: ParsePayload<unknown>) => MaybeAsync<unknown>;
@@ -769,6 +1192,20 @@ interface $ZodNonOptional<T extends SomeType = $ZodType> extends $ZodType {
     _zod: $ZodNonOptionalInternals<T>;
 }
 declare const $ZodNonOptional: $constructor<$ZodNonOptional>;
+interface $ZodSuccessDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+    type: "success";
+    innerType: T;
+}
+interface $ZodSuccessInternals<T extends SomeType = $ZodType> extends $ZodTypeInternals<boolean, input<T>> {
+    def: $ZodSuccessDef<T>;
+    isst: never;
+    optin: T["_zod"]["optin"];
+    optout: "optional" | undefined;
+}
+interface $ZodSuccess<T extends SomeType = $ZodType> extends $ZodType {
+    _zod: $ZodSuccessInternals<T>;
+}
+declare const $ZodSuccess: $constructor<$ZodSuccess>;
 interface $ZodCatchCtx extends ParsePayload {
     /** @deprecated Use `ctx.issues` */
     error: {
@@ -793,6 +1230,17 @@ interface $ZodCatch<T extends SomeType = $ZodType> extends $ZodType {
     _zod: $ZodCatchInternals<T>;
 }
 declare const $ZodCatch: $constructor<$ZodCatch>;
+interface $ZodNaNDef extends $ZodTypeDef {
+    type: "nan";
+}
+interface $ZodNaNInternals extends $ZodTypeInternals<number, number> {
+    def: $ZodNaNDef;
+    isst: $ZodIssueInvalidType;
+}
+interface $ZodNaN extends $ZodType {
+    _zod: $ZodNaNInternals;
+}
+declare const $ZodNaN: $constructor<$ZodNaN>;
 interface $ZodPipeDef<A extends SomeType = $ZodType, B extends SomeType = $ZodType> extends $ZodTypeDef {
     type: "pipe";
     in: A;
@@ -830,6 +1278,87 @@ interface $ZodReadonly<T extends SomeType = $ZodType> extends $ZodType {
     _zod: $ZodReadonlyInternals<T>;
 }
 declare const $ZodReadonly: $constructor<$ZodReadonly>;
+interface $ZodTemplateLiteralDef extends $ZodTypeDef {
+    type: "template_literal";
+    parts: $ZodTemplateLiteralPart[];
+    format?: string | undefined;
+}
+interface $ZodTemplateLiteralInternals<Template extends string = string> extends $ZodTypeInternals<Template, Template> {
+    pattern: RegExp;
+    def: $ZodTemplateLiteralDef;
+    isst: $ZodIssueInvalidType;
+}
+type LiteralPart = Exclude<Literal, symbol>;
+interface SchemaPartInternals extends $ZodTypeInternals<LiteralPart, LiteralPart> {
+    pattern: RegExp;
+}
+interface SchemaPart extends $ZodType {
+    _zod: SchemaPartInternals;
+}
+type $ZodTemplateLiteralPart = LiteralPart | SchemaPart;
+interface $ZodTemplateLiteral<Template extends string = string> extends $ZodType {
+    _zod: $ZodTemplateLiteralInternals<Template>;
+}
+declare const $ZodTemplateLiteral: $constructor<$ZodTemplateLiteral>;
+type $ZodFunctionArgs = $ZodType<unknown[], unknown[]>;
+type $ZodFunctionIn = $ZodFunctionArgs;
+type $ZodFunctionOut = $ZodType;
+type $InferInnerFunctionType<Args extends $ZodFunctionIn, Returns extends $ZodFunctionOut> = (...args: $ZodFunctionIn extends Args ? never[] : output<Args>) => input<Returns>;
+type $InferInnerFunctionTypeAsync<Args extends $ZodFunctionIn, Returns extends $ZodFunctionOut> = (...args: $ZodFunctionIn extends Args ? never[] : output<Args>) => MaybeAsync<input<Returns>>;
+type $InferOuterFunctionType<Args extends $ZodFunctionIn, Returns extends $ZodFunctionOut> = (...args: $ZodFunctionIn extends Args ? never[] : input<Args>) => output<Returns>;
+type $InferOuterFunctionTypeAsync<Args extends $ZodFunctionIn, Returns extends $ZodFunctionOut> = (...args: $ZodFunctionIn extends Args ? never[] : input<Args>) => MaybeAsync<output<Returns>>;
+interface $ZodFunctionDef<In extends $ZodFunctionIn = $ZodFunctionIn, Out extends $ZodFunctionOut = $ZodFunctionOut> extends $ZodTypeDef {
+    type: "function";
+    input: In;
+    output: Out;
+}
+interface $ZodFunctionInternals<Args extends $ZodFunctionIn, Returns extends $ZodFunctionOut> extends $ZodTypeInternals<$InferOuterFunctionType<Args, Returns>, $InferInnerFunctionType<Args, Returns>> {
+    def: $ZodFunctionDef<Args, Returns>;
+    isst: $ZodIssueInvalidType;
+}
+interface $ZodFunction<Args extends $ZodFunctionIn = $ZodFunctionIn, Returns extends $ZodFunctionOut = $ZodFunctionOut> extends $ZodType<any, any, $ZodFunctionInternals<Args, Returns>> {
+    /** @deprecated */
+    _def: $ZodFunctionDef<Args, Returns>;
+    _input: $InferInnerFunctionType<Args, Returns>;
+    _output: $InferOuterFunctionType<Args, Returns>;
+    implement<F extends $InferInnerFunctionType<Args, Returns>>(func: F): (...args: Parameters<this["_output"]>) => ReturnType<F> extends ReturnType<this["_output"]> ? ReturnType<F> : ReturnType<this["_output"]>;
+    implementAsync<F extends $InferInnerFunctionTypeAsync<Args, Returns>>(func: F): F extends $InferOuterFunctionTypeAsync<Args, Returns> ? F : $InferOuterFunctionTypeAsync<Args, Returns>;
+    input<const Items extends TupleItems, const Rest extends $ZodFunctionOut = $ZodFunctionOut>(args: Items, rest?: Rest): $ZodFunction<$ZodTuple<Items, Rest>, Returns>;
+    input<NewArgs extends $ZodFunctionIn>(args: NewArgs): $ZodFunction<NewArgs, Returns>;
+    input(...args: any[]): $ZodFunction<any, Returns>;
+    output<NewReturns extends $ZodType>(output: NewReturns): $ZodFunction<Args, NewReturns>;
+}
+declare const $ZodFunction: $constructor<$ZodFunction>;
+interface $ZodPromiseDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+    type: "promise";
+    innerType: T;
+}
+interface $ZodPromiseInternals<T extends SomeType = $ZodType> extends $ZodTypeInternals<Promise<output<T>>, MaybeAsync<input<T>>> {
+    def: $ZodPromiseDef<T>;
+    isst: never;
+}
+interface $ZodPromise<T extends SomeType = $ZodType> extends $ZodType {
+    _zod: $ZodPromiseInternals<T>;
+}
+declare const $ZodPromise: $constructor<$ZodPromise>;
+interface $ZodLazyDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+    type: "lazy";
+    getter: () => T;
+}
+interface $ZodLazyInternals<T extends SomeType = $ZodType> extends $ZodTypeInternals<output<T>, input<T>> {
+    def: $ZodLazyDef<T>;
+    isst: never;
+    /** Auto-cached way to retrieve the inner schema */
+    innerType: T;
+    pattern: T["_zod"]["pattern"];
+    propValues: T["_zod"]["propValues"];
+    optin: T["_zod"]["optin"];
+    optout: T["_zod"]["optout"];
+}
+interface $ZodLazy<T extends SomeType = $ZodType> extends $ZodType {
+    _zod: $ZodLazyInternals<T>;
+}
+declare const $ZodLazy: $constructor<$ZodLazy>;
 interface $ZodCustomDef<O = unknown> extends $ZodTypeDef, $ZodCheckDef {
     type: "custom";
     check: "custom";
@@ -850,6 +1379,7 @@ interface $ZodCustom<O = unknown, I = unknown> extends $ZodType {
     _zod: $ZodCustomInternals<O, I>;
 }
 declare const $ZodCustom: $constructor<$ZodCustom>;
+type $ZodTypes = $ZodString | $ZodNumber | $ZodBigInt | $ZodBoolean | $ZodDate | $ZodSymbol | $ZodUndefined | $ZodNullable | $ZodNull | $ZodAny | $ZodUnknown | $ZodNever | $ZodVoid | $ZodArray | $ZodObject | $ZodUnion | $ZodIntersection | $ZodTuple | $ZodRecord | $ZodMap | $ZodSet | $ZodLiteral | $ZodEnum | $ZodFunction | $ZodPromise | $ZodLazy | $ZodOptional | $ZodDefault | $ZodPrefault | $ZodTemplateLiteral | $ZodCustom | $ZodTransform | $ZodNonOptional | $ZodReadonly | $ZodNaN | $ZodPipe | $ZodSuccess | $ZodCatch | $ZodFile;
 
 interface $ZodCheckDef {
     check: string;
@@ -1079,12 +1609,21 @@ interface $ZodIssueUnrecognizedKeys extends $ZodIssueBase {
     readonly keys: string[];
     readonly input?: Record<string, unknown>;
 }
-interface $ZodIssueInvalidUnion extends $ZodIssueBase {
+interface $ZodIssueInvalidUnionNoMatch extends $ZodIssueBase {
     readonly code: "invalid_union";
     readonly errors: $ZodIssue[][];
     readonly input?: unknown;
     readonly discriminator?: string | undefined;
+    readonly inclusive?: true;
 }
+interface $ZodIssueInvalidUnionMultipleMatch extends $ZodIssueBase {
+    readonly code: "invalid_union";
+    readonly errors: [];
+    readonly input?: unknown;
+    readonly discriminator?: string | undefined;
+    readonly inclusive: false;
+}
+type $ZodIssueInvalidUnion = $ZodIssueInvalidUnionNoMatch | $ZodIssueInvalidUnionMultipleMatch;
 interface $ZodIssueInvalidKey<Input = unknown> extends $ZodIssueBase {
     readonly code: "invalid_key";
     readonly origin: "map" | "record";
@@ -1184,37 +1723,6 @@ type output<T> = T extends {
     };
 } ? T["_zod"]["output"] : unknown;
 
-declare const $output: unique symbol;
-type $output = typeof $output;
-declare const $input: unique symbol;
-type $input = typeof $input;
-type $replace<Meta, S extends $ZodType> = Meta extends $output ? output<S> : Meta extends $input ? input<S> : Meta extends (infer M)[] ? $replace<M, S>[] : Meta extends (...args: infer P) => infer R ? (...args: {
-    [K in keyof P]: $replace<P[K], S>;
-}) => $replace<R, S> : Meta extends object ? {
-    [K in keyof Meta]: $replace<Meta[K], S>;
-} : Meta;
-type MetadataType = object | undefined;
-declare class $ZodRegistry<Meta extends MetadataType = MetadataType, Schema extends $ZodType = $ZodType> {
-    _meta: Meta;
-    _schema: Schema;
-    _map: WeakMap<Schema, $replace<Meta, Schema>>;
-    _idmap: Map<string, Schema>;
-    add<S extends Schema>(schema: S, ..._meta: undefined extends Meta ? [$replace<Meta, S>?] : [$replace<Meta, S>]): this;
-    clear(): this;
-    remove(schema: Schema): this;
-    get<S extends Schema>(schema: S): $replace<Meta, S> | undefined;
-    has(schema: Schema): boolean;
-}
-interface JSONSchemaMeta {
-    id?: string | undefined;
-    title?: string | undefined;
-    description?: string | undefined;
-    deprecated?: boolean | undefined;
-    [k: string]: unknown;
-}
-interface GlobalMeta extends JSONSchemaMeta {
-}
-
 type Params<T extends $ZodType | $ZodCheck, IssueTypes extends $ZodIssueBase, OmitKeys extends keyof T["_zod"]["def"] = never> = Flatten<Partial<EmptyToNever<Omit<T["_zod"]["def"], OmitKeys> & ([IssueTypes] extends [never] ? {} : {
     error?: string | $ZodErrorMap<IssueTypes> | undefined;
     /** @deprecated This parameter is deprecated. Use `error` instead. */
@@ -1306,6 +1814,7 @@ type ZodSafeParseError<T> = {
     error: ZodError<T>;
 };
 
+type ZodStandardSchemaWithJSON<T> = StandardSchemaWithJSONProps<input<T>, output<T>>;
 interface _ZodType<out Internals extends $ZodTypeInternals = $ZodTypeInternals> extends ZodType<any, any, Internals> {
 }
 interface ZodType<out Output = unknown, out Input = unknown, out Internals extends $ZodTypeInternals<Output, Input> = $ZodTypeInternals<Output, Input>> extends $ZodType<Output, Input, Internals> {
@@ -1317,6 +1826,9 @@ interface ZodType<out Output = unknown, out Input = unknown, out Internals exten
     _output: Internals["output"];
     /** @deprecated Use `z.input<typeof schema>` instead. */
     _input: Internals["input"];
+    "~standard": ZodStandardSchemaWithJSON<this>;
+    /** Converts this schema to a JSON Schema representation. */
+    toJSONSchema(params?: ToJSONSchemaParams): ZodStandardJSONSchemaPayload<this>;
     check(...checks: (CheckFn<output<this>> | $ZodCheck<output<this>>)[]): this;
     clone(def?: Internals["def"], params?: {
         parent: boolean;
@@ -1533,6 +2045,7 @@ interface ZodArray<T extends SomeType = $ZodType> extends _ZodType<$ZodArrayInte
     max(maxLength: number, params?: string | $ZodCheckMaxLengthParams): this;
     length(len: number, params?: string | $ZodCheckLengthEqualsParams): this;
     unwrap(): T;
+    "~standard": ZodStandardSchemaWithJSON<this>;
 }
 declare const ZodArray: $constructor<ZodArray>;
 type SafeExtendShape<Base extends $ZodShape, Ext extends $ZodLooseShape> = {
@@ -1541,6 +2054,7 @@ type SafeExtendShape<Base extends $ZodShape, Ext extends $ZodLooseShape> = {
 interface ZodObject<
 /** @ts-ignore Cast variance */
 out Shape extends $ZodShape = $ZodLooseShape, out Config extends $ZodObjectConfig = $strip> extends _ZodType<$ZodObjectInternals<Shape, Config>>, $ZodObject<Shape, Config> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     shape: Shape;
     keyof(): ZodEnum<ToEnum<keyof Shape & string>>;
     /** Define a schema to validate all unrecognized keys. This overrides the existing strict/loose behavior. */
@@ -1576,22 +2090,27 @@ out Shape extends $ZodShape = $ZodLooseShape, out Config extends $ZodObjectConfi
 }
 declare const ZodObject: $constructor<ZodObject>;
 interface ZodUnion<T extends readonly SomeType[] = readonly $ZodType[]> extends _ZodType<$ZodUnionInternals<T>>, $ZodUnion<T> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     options: T;
 }
 declare const ZodUnion: $constructor<ZodUnion>;
 interface ZodDiscriminatedUnion<Options extends readonly SomeType[] = readonly $ZodType[], Disc extends string = string> extends ZodUnion<Options>, $ZodDiscriminatedUnion<Options, Disc> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     _zod: $ZodDiscriminatedUnionInternals<Options, Disc>;
     def: $ZodDiscriminatedUnionDef<Options, Disc>;
 }
 declare const ZodDiscriminatedUnion: $constructor<ZodDiscriminatedUnion>;
 interface ZodIntersection<A extends SomeType = $ZodType, B extends SomeType = $ZodType> extends _ZodType<$ZodIntersectionInternals<A, B>>, $ZodIntersection<A, B> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
 }
 declare const ZodIntersection: $constructor<ZodIntersection>;
 interface ZodTuple<T extends TupleItems = readonly $ZodType[], Rest extends SomeType | null = $ZodType | null> extends _ZodType<$ZodTupleInternals<T, Rest>>, $ZodTuple<T, Rest> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     rest<Rest extends SomeType = $ZodType>(rest: Rest): ZodTuple<T, Rest>;
 }
 declare const ZodTuple: $constructor<ZodTuple>;
 interface ZodRecord<Key extends $ZodRecordKey = $ZodRecordKey, Value extends SomeType = $ZodType> extends _ZodType<$ZodRecordInternals<Key, Value>>, $ZodRecord<Key, Value> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     keyType: Key;
     valueType: Value;
 }
@@ -1599,6 +2118,7 @@ declare const ZodRecord: $constructor<ZodRecord>;
 interface ZodEnum<
 /** @ts-ignore Cast variance */
 out T extends EnumLike = EnumLike> extends _ZodType<$ZodEnumInternals<T>>, $ZodEnum<T> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     enum: T;
     options: Array<T[keyof T]>;
     extract<const U extends readonly (keyof T)[]>(values: U, params?: string | $ZodEnumParams): ZodEnum<Flatten<Pick<T, U[number]>>>;
@@ -1606,48 +2126,58 @@ out T extends EnumLike = EnumLike> extends _ZodType<$ZodEnumInternals<T>>, $ZodE
 }
 declare const ZodEnum: $constructor<ZodEnum>;
 interface ZodLiteral<T extends Literal = Literal> extends _ZodType<$ZodLiteralInternals<T>>, $ZodLiteral<T> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     values: Set<T>;
     /** @legacy Use `.values` instead. Accessing this property will throw an error if the literal accepts multiple values. */
     value: T;
 }
 declare const ZodLiteral: $constructor<ZodLiteral>;
 interface ZodTransform<O = unknown, I = unknown> extends _ZodType<$ZodTransformInternals<O, I>>, $ZodTransform<O, I> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
 }
 declare const ZodTransform: $constructor<ZodTransform>;
 interface ZodOptional<T extends SomeType = $ZodType> extends _ZodType<$ZodOptionalInternals<T>>, $ZodOptional<T> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     unwrap(): T;
 }
 declare const ZodOptional: $constructor<ZodOptional>;
 interface ZodNullable<T extends SomeType = $ZodType> extends _ZodType<$ZodNullableInternals<T>>, $ZodNullable<T> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     unwrap(): T;
 }
 declare const ZodNullable: $constructor<ZodNullable>;
 interface ZodDefault<T extends SomeType = $ZodType> extends _ZodType<$ZodDefaultInternals<T>>, $ZodDefault<T> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     unwrap(): T;
     /** @deprecated Use `.unwrap()` instead. */
     removeDefault(): T;
 }
 declare const ZodDefault: $constructor<ZodDefault>;
 interface ZodPrefault<T extends SomeType = $ZodType> extends _ZodType<$ZodPrefaultInternals<T>>, $ZodPrefault<T> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     unwrap(): T;
 }
 declare const ZodPrefault: $constructor<ZodPrefault>;
 interface ZodNonOptional<T extends SomeType = $ZodType> extends _ZodType<$ZodNonOptionalInternals<T>>, $ZodNonOptional<T> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     unwrap(): T;
 }
 declare const ZodNonOptional: $constructor<ZodNonOptional>;
 interface ZodCatch<T extends SomeType = $ZodType> extends _ZodType<$ZodCatchInternals<T>>, $ZodCatch<T> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     unwrap(): T;
     /** @deprecated Use `.unwrap()` instead. */
     removeCatch(): T;
 }
 declare const ZodCatch: $constructor<ZodCatch>;
 interface ZodPipe<A extends SomeType = $ZodType, B extends SomeType = $ZodType> extends _ZodType<$ZodPipeInternals<A, B>>, $ZodPipe<A, B> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     in: A;
     out: B;
 }
 declare const ZodPipe: $constructor<ZodPipe>;
 interface ZodReadonly<T extends SomeType = $ZodType> extends _ZodType<$ZodReadonlyInternals<T>>, $ZodReadonly<T> {
+    "~standard": ZodStandardSchemaWithJSON<this>;
     unwrap(): T;
 }
 declare const ZodReadonly: $constructor<ZodReadonly>;
@@ -1672,7 +2202,7 @@ declare const PartialGameRecordSchema: ZodObject<{
             gameType: ZodEnum<typeof GameType>;
             gameMode: ZodEnum<typeof GameMode>;
             gameMapSize: ZodEnum<typeof GameMapSize>;
-            disableNPCs: ZodBoolean;
+            disableNations: ZodBoolean;
             bots: ZodNumber;
             infiniteGold: ZodBoolean;
             infiniteTroops: ZodBoolean;
@@ -1886,10 +2416,14 @@ declare enum GameMapType {
     Japan = "Japan",
     Pluto = "Pluto",
     Montreal = "Montreal",
+    NewYorkCity = "New York City",
     Achiran = "Achiran",
     BaikalNukeWars = "Baikal (Nuke Wars)",
     FourIslands = "Four Islands",
-    GulfOfStLawrence = "Gulf of St. Lawrence"
+    Svalmel = "Svalmel",
+    GulfOfStLawrence = "Gulf of St. Lawrence",
+    Lisbon = "Lisbon",
+    Manicouagan = "Manicouagan"
 }
 declare enum GameType {
     Singleplayer = "Singleplayer",
@@ -2062,6 +2596,8 @@ type GameListOptions = {
     type?: GameType;
     limit?: number;
     offset?: number;
+    start: string;
+    end: string;
 };
 type GameListItem = {
     game: GameID;
@@ -2074,38 +2610,50 @@ type GameListItem = {
 type ClanOptions = {
     start?: string;
     end?: string;
-    limit?: number;
 };
+interface PaginatedGameList {
+    items: GameListItem[];
+    total: number;
+    range: {
+        start: number;
+        end: number;
+    };
+}
 
-/**
- * Games
- */
 /**
  * List Game Metadata
  * Get game IDs and basic metadata for games that started within a specified time range.
- * @param start - Unix timestamp (number) for the start of the range.
- * @param end - Unix timestamp (number) for the end of the range.
+ * @param params - Object containing start, end, and optional type/limit/offset params.
  */
-declare function getGames(start: number, end: number, options?: GameListOptions): Promise<GameListItem[]>;
+declare function getGames(params: GameListOptions): Promise<PaginatedGameList>;
+interface GetGameInfoParams {
+    gameId: string;
+    includeTurns?: boolean;
+}
 /**
  * Get Game Info
  * Retrieve detailed information about a specific game.
- * Note: The API response now follows the nested PartialGameRecord structure (version, info, turns).
  */
-declare function getGameInfo(gameId: string, includeTurns?: boolean): Promise<PartialGameRecord>;
+declare function getGameInfo(params: GetGameInfoParams): Promise<PartialGameRecord>;
 /**
  * Players
  */
+interface GetPlayerInfoParams {
+    playerId: string;
+}
 /**
  * Get Player Info
  * Retrieve information and stats for a specific player.
  */
-declare function getPlayerInfo(playerId: string): Promise<PlayerProfile>;
+declare function getPlayerInfo(params: GetPlayerInfoParams): Promise<PlayerProfile>;
+interface GetPlayerSessionsParams {
+    playerId: string;
+}
 /**
  * Get Player Sessions
  * Retrieve a list of games & client ids (session ids) for a specific player.
  */
-declare function getPlayerSessions(playerId: string): Promise<PlayerSessions>;
+declare function getPlayerSessions(params: GetPlayerSessionsParams): Promise<PlayerSessions>;
 /**
  * Clans
  */
@@ -2114,16 +2662,22 @@ declare function getPlayerSessions(playerId: string): Promise<PlayerSessions>;
  * Shows the top 100 clans by weighted wins.
  */
 declare function getClanLeaderboard(): Promise<ClanLeaderboardResponse[]>;
+interface GetClanStatsParams extends ClanOptions {
+    clanTag: string;
+}
 /**
  * Clan Stats
  * Displays comprehensive clan performance statistics.
  */
-declare function getClanStats(clanTag: string, options?: ClanOptions): Promise<ClanStats>;
+declare function getClanStats(params: GetClanStatsParams): Promise<ClanStats>;
+interface GetClanSessionsParams extends ClanOptions {
+    clanTag: string;
+}
 /**
  * Clan Sessions
  * Retrieve clan sessions for a specific clan.
  */
-declare function getClanSessions(clanTag: string, options?: ClanOptions): Promise<ClanSession[]>;
+declare function getClanSessions(params: GetClanSessionsParams): Promise<ClanSession[]>;
 declare const _default: {
     getGames: typeof getGames;
     getGameInfo: typeof getGameInfo;
@@ -2135,3 +2689,4 @@ declare const _default: {
 };
 
 export { _default as default, getClanLeaderboard, getClanSessions, getClanStats, getGameInfo, getGames, getPlayerInfo, getPlayerSessions };
+export type { GetClanSessionsParams, GetClanStatsParams, GetGameInfoParams, GetPlayerInfoParams, GetPlayerSessionsParams };

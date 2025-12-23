@@ -57,7 +57,7 @@ function makeRequest(path, params = {}) {
         try {
           if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
             const d = JSON.parse(data);
-            resolve(d);
+            resolve({ body: d, headers: res.headers });
           } else {
             const error = {
               statusCode: res.statusCode || 500,
@@ -77,50 +77,75 @@ function makeRequest(path, params = {}) {
     req.end();
   });
 }
-function getGames(start, end, options = {}) {
+async function getGames(params) {
+  const { start, end } = params;
   if (!start || !end) {
     throw new Error("Start and End timestamps are required.");
   }
-  return makeRequest("/public/games", {
-    start,
-    end,
-    ...options
-  });
-}
-async function getGameInfo(gameId, includeTurns = true) {
-  const params = {};
-  if (includeTurns === false) {
-    params.turns = "false";
+  const { body, headers } = await makeRequest("/public/games", params);
+  let total = 0;
+  let rangeStart = 0;
+  let rangeEnd = 0;
+  const rangeHeader = headers["content-range"];
+  if (rangeHeader && typeof rangeHeader === "string") {
+    const match = rangeHeader.match(/games (\d+)-(\d+)\/(\d+)/);
+    if (match) {
+      rangeStart = parseInt(match[1], 10);
+      rangeEnd = parseInt(match[2], 10);
+      total = parseInt(match[3], 10);
+    }
   }
-  const game = await makeRequest(`/public/game/${gameId}`, params);
-  return convertStringBigIntsToBigInts(game);
+  return {
+    items: body,
+    total,
+    range: {
+      start: rangeStart,
+      end: rangeEnd
+    }
+  };
 }
-async function getPlayerInfo(playerId) {
-  const profile = await makeRequest(
+async function getGameInfo(params) {
+  const { gameId, includeTurns = true } = params;
+  const requestParams = {};
+  if (includeTurns === false) {
+    requestParams.turns = "false";
+  }
+  const { body } = await makeRequest(`/public/game/${gameId}`, requestParams);
+  return convertStringBigIntsToBigInts(body);
+}
+async function getPlayerInfo(params) {
+  const { playerId } = params;
+  const { body } = await makeRequest(
     `/public/player/${playerId}`
   );
-  return convertStringBigIntsToBigInts(profile);
+  return convertStringBigIntsToBigInts(body);
 }
-async function getPlayerSessions(playerId) {
-  const sessions = await makeRequest(
+async function getPlayerSessions(params) {
+  const { playerId } = params;
+  const { body } = await makeRequest(
     `/public/player/${playerId}/sessions`
   );
-  return convertStringBigIntsToBigInts(sessions);
+  return convertStringBigIntsToBigInts(body);
 }
-function getClanLeaderboard() {
-  return makeRequest("/public/clans/leaderboard");
+async function getClanLeaderboard() {
+  const { body } = await makeRequest("/public/clans/leaderboard");
+  return body;
 }
-function getClanStats(clanTag, options = {}) {
-  return makeRequest(
+async function getClanStats(params) {
+  const { clanTag, ...options } = params;
+  const { body } = await makeRequest(
     `/public/clan/${clanTag}`,
     options
   );
+  return body;
 }
-function getClanSessions(clanTag, options = {}) {
-  return makeRequest(
+async function getClanSessions(params) {
+  const { clanTag, ...options } = params;
+  const { body } = await makeRequest(
     `/public/clan/${clanTag}/sessions`,
     options
   );
+  return body;
 }
 var index = {
   getGames,

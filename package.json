@@ -6,7 +6,8 @@
     "sample": "tsx src/example",
     "scrape": "tsx src/game-scrape",
     "types": "tsx src/openfront-types",
-    "test-types": "tsc -p tsconfig.json --noEmit"
+    "test-types": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest"
   },
   "version": "1.0.0",
   "main": "./dist/index.js",
@@ -26,6 +27,7 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "openfront-client": "github:openfrontio/OpenFrontIO"
+    "openfront-client": "github:openfrontio/OpenFrontIO",
+    "vitest": "^4.0.16"
   }
 }
