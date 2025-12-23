@@ -27,6 +27,16 @@ const games = await getGames({
 });
 ```
 
+## Supported Methods
+
+- [getClanLeaderboard](https://tidwell.github.io/openfrontio-api-client/functions/getClanLeaderboard.html)
+- [getClanSessions](https://tidwell.github.io/openfrontio-api-client/functions/getClanSessions.html)
+- [getClanStats](https://tidwell.github.io/openfrontio-api-client/functions/getClanStats.html)
+- [getGameInfo](https://tidwell.github.io/openfrontio-api-client/functions/getGameInfo.html)
+- [getGames](https://tidwell.github.io/openfrontio-api-client/functions/getGames.html)
+- [getPlayerInfo](https://tidwell.github.io/openfrontio-api-client/functions/getPlayerInfo.html)
+- [getPlayerSessions](https://tidwell.github.io/openfrontio-api-client/functions/getPlayerSessions.html)
+
 ## Key Features
 
 - **Pagination Normalization**: Automatically parses and normalizes pagination headers, making it easier to traverse large datasets.
