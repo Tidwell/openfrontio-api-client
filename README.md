@@ -116,3 +116,7 @@ To generate the API documentation using TypeDoc:
 ```bash
 npm run docs
 ```
+
+## License
+
+Distributed under the MIT License. See LICENSE.md for more information.
