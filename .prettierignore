@@ -1,0 +1,5 @@
+dist
+docs
+coverage
+node_modules
+tests-e2e/.tmp

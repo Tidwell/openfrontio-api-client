@@ -6,7 +6,7 @@
     "test": "vitest run",
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "test:e2e:write": "WRITE_API_RESPONSES=true npm run test:e2e",
-    "format": "prettier --write \"**/*.{js,ts}\" --ignore-path .gitignore",
+    "format": "prettier --write \"**/*.{js,ts}\"",
     "docs": "npx typedoc src/index.ts"
   },
   "engine": "24.xx.xx",
