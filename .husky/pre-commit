@@ -1,5 +1,2 @@
 npm test
-npm run build
 npm run format
-npm run docs
-git update-index --again
