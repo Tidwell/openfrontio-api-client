@@ -134,6 +134,7 @@ export async function getGames(params: GameListOptions): Promise<PaginatedGameLi
 export interface GetGameInfoParams {
   gameId: string;
   includeTurns?: boolean;
+  useBigInt?: boolean;
 }
 
 /**
@@ -141,13 +142,13 @@ export interface GetGameInfoParams {
  * Retrieve detailed information about a specific game.
  */
 export async function getGameInfo(params: GetGameInfoParams): Promise<PartialGameRecord> {
-  const { gameId, includeTurns = true } = params;
+  const { gameId, includeTurns = true, useBigInt = false } = params;
   const requestParams: { turns?: string } = {};
   if (includeTurns === false) {
     requestParams.turns = 'false';
   }
   const { body } = await makeRequest<PartialGameRecord>(`/public/game/${gameId}`, requestParams);
-  return convertStringBigIntsToBigInts(body);
+  return useBigInt ? convertStringBigIntsToBigInts(body) : body;
 }
 
 /**
@@ -156,6 +157,7 @@ export async function getGameInfo(params: GetGameInfoParams): Promise<PartialGam
 
 export interface GetPlayerInfoParams {
   playerId: string;
+  useBigInt?: boolean;
 }
 
 /**
@@ -163,15 +165,16 @@ export interface GetPlayerInfoParams {
  * Retrieve information and stats for a specific player.
  */
 export async function getPlayerInfo(params: GetPlayerInfoParams): Promise<PlayerProfile> {
-  const { playerId } = params;
+  const { playerId, useBigInt = false } = params;
   const { body } = await makeRequest<PlayerProfile>(
     `/public/player/${playerId}`
   );
-  return convertStringBigIntsToBigInts(body);
+  return useBigInt ? convertStringBigIntsToBigInts(body) : body;
 }
 
 export interface GetPlayerSessionsParams {
   playerId: string;
+  useBigInt?: boolean;
 }
 
 /**
@@ -179,11 +182,11 @@ export interface GetPlayerSessionsParams {
  * Retrieve a list of games & client ids (session ids) for a specific player.
  */
 export async function getPlayerSessions(params: GetPlayerSessionsParams): Promise<PlayerSessions> {
-  const { playerId } = params;
+  const { playerId, useBigInt = false } = params;
   const { body } = await makeRequest<PlayerSessions>(
     `/public/player/${playerId}/sessions`
   );
-  return convertStringBigIntsToBigInts(body);
+  return useBigInt ? convertStringBigIntsToBigInts(body) : body;
 }
 
 /**
@@ -242,3 +245,18 @@ export default {
   getClanStats,
   getClanSessions,
 };
+
+
+export type {
+  ApiError,
+  GameListItem,
+  GameListOptions,
+  PartialGameRecord,
+  PlayerProfile,
+  ClanOptions,
+  ClanLeaderboardResponse,
+  ClanStats,
+  ClanSession,
+  PlayerSessions,
+  PaginatedGameList,
+} 

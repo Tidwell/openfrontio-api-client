@@ -5,6 +5,7 @@ function isNumeric(value) {
   return typeof value === "string" && /^\d+$/.test(value);
 }
 function convertStringBigIntsToBigInts(obj) {
+  console.log("converting", JSON.stringify(obj));
   if (obj === null || typeof obj !== "object") {
     return obj;
   }
@@ -105,27 +106,27 @@ async function getGames(params) {
   };
 }
 async function getGameInfo(params) {
-  const { gameId, includeTurns = true } = params;
+  const { gameId, includeTurns = true, useBigInt = false } = params;
   const requestParams = {};
   if (includeTurns === false) {
     requestParams.turns = "false";
   }
   const { body } = await makeRequest(`/public/game/${gameId}`, requestParams);
-  return convertStringBigIntsToBigInts(body);
+  return useBigInt ? convertStringBigIntsToBigInts(body) : body;
 }
 async function getPlayerInfo(params) {
-  const { playerId } = params;
+  const { playerId, useBigInt = false } = params;
   const { body } = await makeRequest(
     `/public/player/${playerId}`
   );
-  return convertStringBigIntsToBigInts(body);
+  return useBigInt ? convertStringBigIntsToBigInts(body) : body;
 }
 async function getPlayerSessions(params) {
-  const { playerId } = params;
+  const { playerId, useBigInt = false } = params;
   const { body } = await makeRequest(
     `/public/player/${playerId}/sessions`
   );
-  return convertStringBigIntsToBigInts(body);
+  return useBigInt ? convertStringBigIntsToBigInts(body) : body;
 }
 async function getClanLeaderboard() {
   const { body } = await makeRequest("/public/clans/leaderboard");

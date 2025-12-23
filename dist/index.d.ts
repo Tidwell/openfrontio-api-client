@@ -2607,6 +2607,11 @@ type GameListItem = {
     mode: GameMode;
     difficulty: Difficulty;
 };
+type ApiError = {
+    statusCode: number;
+    message?: string;
+    body: string;
+};
 type ClanOptions = {
     start?: string;
     end?: string;
@@ -2629,6 +2634,7 @@ declare function getGames(params: GameListOptions): Promise<PaginatedGameList>;
 interface GetGameInfoParams {
     gameId: string;
     includeTurns?: boolean;
+    useBigInt?: boolean;
 }
 /**
  * Get Game Info
@@ -2640,6 +2646,7 @@ declare function getGameInfo(params: GetGameInfoParams): Promise<PartialGameReco
  */
 interface GetPlayerInfoParams {
     playerId: string;
+    useBigInt?: boolean;
 }
 /**
  * Get Player Info
@@ -2648,6 +2655,7 @@ interface GetPlayerInfoParams {
 declare function getPlayerInfo(params: GetPlayerInfoParams): Promise<PlayerProfile>;
 interface GetPlayerSessionsParams {
     playerId: string;
+    useBigInt?: boolean;
 }
 /**
  * Get Player Sessions
@@ -2689,4 +2697,4 @@ declare const _default: {
 };
 
 export { _default as default, getClanLeaderboard, getClanSessions, getClanStats, getGameInfo, getGames, getPlayerInfo, getPlayerSessions };
-export type { GetClanSessionsParams, GetClanStatsParams, GetGameInfoParams, GetPlayerInfoParams, GetPlayerSessionsParams };
+export type { ApiError, ClanLeaderboardResponse, ClanOptions, ClanSession, ClanStats, GameListItem, GameListOptions, GetClanSessionsParams, GetClanStatsParams, GetGameInfoParams, GetPlayerInfoParams, GetPlayerSessionsParams, PaginatedGameList, PartialGameRecord, PlayerProfile, PlayerSessions };

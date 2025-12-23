@@ -1,3 +1,5 @@
 node_modules
 sample-output
 games-data-output
+.tmp
+coverage

@@ -3,6 +3,7 @@ function isNumeric(value: any): boolean {
 }
 
 export function convertStringBigIntsToBigInts(obj: any): any {
+  console.log('converting', JSON.stringify(obj));
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }

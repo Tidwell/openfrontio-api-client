@@ -106,13 +106,6 @@ export type ClanOptions = {
   end?: string;
 }
 
-// const types = {
-//   GameListOptions,
-//   GameListItem,
-//   ...ApiSchemas,
-//   ...Schemas
-// };
-
 export interface PaginatedGameList {
   items: GameListItem[];
   total: number;
@@ -121,7 +114,3 @@ export interface PaginatedGameList {
     end: number;
   };
 }
-
-// console.log(Object.keys(Schemas));
-
-// export default types;
