@@ -11,7 +11,7 @@ An unofficial, robust JavaScript/TypeScript client for the [OpenFront API](https
 npm install openfrontio-api-client
 ```
 
-## [View the Docs](LINK TBD)
+*[View the Docs](https://tidwell.github.io/openfrontio-api-client/)*
 
 ## Quick Usage
 
