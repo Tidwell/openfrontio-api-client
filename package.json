@@ -19,14 +19,11 @@
       "import": "./dist/index.js"
     }
   },
-  "dependencies": {
-    "@types/node": "^20.0.0",
-    "json-with-bigint": "^3.4.4",
+  "dependencies": {},
+  "devDependencies": {
     "pkgroll": "^2.21.4",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
-  },
-  "devDependencies": {
+    "typescript": "^5.9.3",
     "@vitest/coverage-v8": "^4.0.16",
     "openfront-client": "github:openfrontio/OpenFrontIO",
     "prettier": "^3.3.3",
