@@ -9,6 +9,7 @@
     "format": "prettier --write \"**/*.{js,ts}\" --ignore-path .gitignore",
     "docs": "npx typedoc src/index.ts"
   },
+  "engine": "24.xx.xx",
   "version": "1.0.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
